@@ -1,31 +1,17 @@
 #ifndef __SCANNER_H__
 #define __SCANNER_H__
 
+#include "grammar.h"
+
 #include <string>
 
 namespace scanner
 {
-#define TOKENS TOKEN(ET_ERROR) \
-    TOKEN(ET_IDENTIFIER) \
-    TOKEN(ET_OPERATION) \
-    TOKEN(ET_BOOLEAN) \
-    TOKEN(ET_INTEGER) \
-    TOKEN(ET_FLOAT) \
-    TOKEN(ET_STRING) \
-    TOKEN(ET_LEFT_PARENTHESIS) \
-    TOKEN(ET_RIGHT_PARENTHESIS) \
-    TOKEN(ET_SPACE) \
-    TOKEN(ET_EOL) \
-    TOKEN(ET_END)
+#define ET_EOF -2
+#define ET_ERROR -1
+#define ET_END 0
 
-    extern const char* TOKEN_NAMES[];
-
-    enum EToken
-    {
-#define TOKEN(x) x,
-        TOKENS
-#undef TOKEN
-    };
+    typedef int EToken;
 
     class CToken
     {

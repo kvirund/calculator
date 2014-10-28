@@ -13,7 +13,6 @@ int main(int argc, char **argv)
         {
             break;
         }
-        std::cerr << line << std::endl;
         parser::CParser parser;
         parser.parse(line);
     } while (true);

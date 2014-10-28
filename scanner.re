@@ -2,12 +2,6 @@
 
 namespace scanner
 {
-const char* TOKEN_NAMES[] =
-{
-#define TOKEN(x) #x,
-    TOKENS
-#undef TOKEN
-};
 
 CToken scan(const std::string& expression, size_t& offset)
 {
@@ -28,28 +22,58 @@ re2c:indent:top = 1;
 
 IDENTIFIER = [a-zA-Z_][a-zA-Z0-9_]* ;
 LEFT_P = '(' ;
-OPERATION = '<' | '>' | '<=' | '>=' | '==' | '!=' | '+' | '-' | '/' | '*' ;
+LESS = '<' ;
+GREATER = '>' ;
+LESS_OR_EQUAL = '<=' ;
+GREATER_OR_EQUAL = '>=' ;
+EQUAL = '==' ;
+NOT_EQUAL = '!=' ;
+PLUS = '+' ;
+MINUS = '-' ;
+DIVIDE = '/' ;
+MOD = '%' ;
+TIMES = '*' ;
+AND = 'and' ;
+OR = 'or' ;
+NOT = 'not' ;
 BOOLEAN = 'true' | 'false' ;
 INTEGER = [0-9]+ ;
-FLOAT = [0-9]+ ('.' [0-9]*)? ('e'[+-][0-9]+)? ;
+FLOAT = [0-9]+ ('.' [0-9]*)? ('e'[+-]?[0-9]+)? ;
 STRING = '"' ( [^"\\\\] | '\\\\' | '\\"' )* '"' ;
 RIGHT_P = ')' ;
 SPACE = [ \t]* ;
 EOL = '\n' ;
 END = "\x00" ;
 
-SPACE       { offset += cursor - p_start; return CToken(ET_SPACE, expression.substr(start, cursor - p_start)); }
-BOOLEAN     { offset += cursor - p_start; return CToken(ET_BOOLEAN, expression.substr(start, cursor - p_start)); }
-FLOAT       { offset += cursor - p_start; return CToken(ET_FLOAT, expression.substr(start, cursor - p_start)); }
-INTEGER     { offset += cursor - p_start; return CToken(ET_INTEGER, expression.substr(start, cursor - p_start)); }
-STRING      { offset += cursor - p_start; return CToken(ET_STRING, expression.substr(1 + start, cursor - p_start - 2)); }
-IDENTIFIER  { offset += cursor - p_start; return CToken(ET_IDENTIFIER, expression.substr(start, cursor - p_start)); }
-OPERATION   { offset += cursor - p_start; return CToken(ET_OPERATION, expression.substr(start, cursor - p_start)); }
-LEFT_P      { offset += cursor - p_start; return CToken(ET_LEFT_PARENTHESIS, expression.substr(start, cursor - p_start)); }
-RIGHT_P     { offset += cursor - p_start; return CToken(ET_RIGHT_PARENTHESIS, expression.substr(start, cursor - p_start)); }
-EOL         { offset += cursor - p_start; return CToken(ET_EOL, expression.substr(start, cursor - p_start)); }
-END         { offset += cursor - p_start; return CToken(ET_END, expression.substr(start, cursor - p_start)); }
-[^]         { offset += cursor - p_start; return CToken(ET_ERROR, expression.substr(start, cursor - p_start)); }
+SPACE            { offset += cursor - p_start; return CToken(ET_SPACE, expression.substr(start, cursor - p_start)); }
+BOOLEAN          { offset += cursor - p_start; return CToken(ET_BOOLEAN, expression.substr(start, cursor - p_start)); }
+FLOAT            { offset += cursor - p_start; return CToken(ET_FLOAT, expression.substr(start, cursor - p_start)); }
+INTEGER          { offset += cursor - p_start; return CToken(ET_INTEGER, expression.substr(start, cursor - p_start)); }
+STRING           { offset += cursor - p_start; return CToken(ET_STRING, expression.substr(1 + start, cursor - p_start - 2)); }
+IDENTIFIER       { offset += cursor - p_start; return CToken(ET_IDENTIFIER, expression.substr(start, cursor - p_start)); }
+
+LESS             { offset += cursor - p_start; return CToken(ET_LESS, expression.substr(start, cursor - p_start)); }
+GREATER          { offset += cursor - p_start; return CToken(ET_GREATER, expression.substr(start, cursor - p_start)); }
+LESS_OR_EQUAL    { offset += cursor - p_start; return CToken(ET_LESS_OR_EQUAL, expression.substr(start, cursor - p_start)); }
+GREATER_OR_EQUAL { offset += cursor - p_start; return CToken(ET_GREATER_OR_EQUAL, expression.substr(start, cursor - p_start)); }
+EQUAL            { offset += cursor - p_start; return CToken(ET_EQUAL, expression.substr(start, cursor - p_start)); }
+NOT_EQUAL        { offset += cursor - p_start; return CToken(ET_NOT_EQUAL, expression.substr(start, cursor - p_start)); }
+
+AND              { offset += cursor - p_start; return CToken(ET_AND, expression.substr(start, cursor - p_start)); }
+OR               { offset += cursor - p_start; return CToken(ET_OR, expression.substr(start, cursor - p_start)); }
+NOT              { offset += cursor - p_start; return CToken(ET_NOT, expression.substr(start, cursor - p_start)); }
+
+PLUS             { offset += cursor - p_start; return CToken(ET_PLUS, expression.substr(start, cursor - p_start)); }
+MINUS            { offset += cursor - p_start; return CToken(ET_MINUS, expression.substr(start, cursor - p_start)); }
+
+DIVIDE           { offset += cursor - p_start; return CToken(ET_DIVIDE, expression.substr(start, cursor - p_start)); }
+MOD              { offset += cursor - p_start; return CToken(ET_MOD, expression.substr(start, cursor - p_start)); }
+TIMES            { offset += cursor - p_start; return CToken(ET_TIMES, expression.substr(start, cursor - p_start)); }
+
+LEFT_P           { offset += cursor - p_start; return CToken(ET_LEFT_P, expression.substr(start, cursor - p_start)); }
+RIGHT_P          { offset += cursor - p_start; return CToken(ET_RIGHT_P, expression.substr(start, cursor - p_start)); }
+END              { offset += cursor - p_start; return CToken(ET_EOF, expression.substr(start, cursor - p_start)); }
+[^]              { offset += cursor - p_start; return CToken(ET_ERROR, expression.substr(start, cursor - p_start)); }
 
 */
 }
