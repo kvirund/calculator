@@ -5,20 +5,26 @@
 
 namespace scanner
 {
+#define TOKENS TOKEN(ET_ERROR) \
+    TOKEN(ET_IDENTIFIER) \
+    TOKEN(ET_OPERATION) \
+    TOKEN(ET_BOOLEAN) \
+    TOKEN(ET_INTEGER) \
+    TOKEN(ET_FLOAT) \
+    TOKEN(ET_STRING) \
+    TOKEN(ET_LEFT_PARENTHESIS) \
+    TOKEN(ET_RIGHT_PARENTHESIS) \
+    TOKEN(ET_SPACE) \
+    TOKEN(ET_EOL) \
+    TOKEN(ET_END)
+
+    extern const char* TOKEN_NAMES[];
+
     enum EToken
     {
-        ET_ERROR = -1,
-        ET_IDENTIFIER,
-        ET_OPERATION,
-        ET_BOOLEAN,
-        ET_INTEGER,
-        ET_FLOAT,
-        ET_STRING,
-        ET_LEFT_PARENTHESIS,
-        ET_RIGHT_PARENTHESIS,
-        ET_SPACE,
-        ET_EOL,
-        ET_END
+#define TOKEN(x) x,
+        TOKENS
+#undef TOKEN
     };
 
     class CToken

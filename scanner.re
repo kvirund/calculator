@@ -2,6 +2,13 @@
 
 namespace scanner
 {
+const char* TOKEN_NAMES[] =
+{
+#define TOKEN(x) #x,
+    TOKENS
+#undef TOKEN
+};
+
 CToken scan(const std::string& expression, size_t& offset)
 {
     std::string::const_pointer marker;
@@ -35,7 +42,7 @@ SPACE       { offset += cursor - p_start; return CToken(ET_SPACE, expression.sub
 BOOLEAN     { offset += cursor - p_start; return CToken(ET_BOOLEAN, expression.substr(start, cursor - p_start)); }
 FLOAT       { offset += cursor - p_start; return CToken(ET_FLOAT, expression.substr(start, cursor - p_start)); }
 INTEGER     { offset += cursor - p_start; return CToken(ET_INTEGER, expression.substr(start, cursor - p_start)); }
-STRING      { offset += cursor - p_start; return CToken(ET_STRING, expression.substr(start, cursor - p_start)); }
+STRING      { offset += cursor - p_start; return CToken(ET_STRING, expression.substr(1 + start, cursor - p_start - 2)); }
 IDENTIFIER  { offset += cursor - p_start; return CToken(ET_IDENTIFIER, expression.substr(start, cursor - p_start)); }
 OPERATION   { offset += cursor - p_start; return CToken(ET_OPERATION, expression.substr(start, cursor - p_start)); }
 LEFT_P      { offset += cursor - p_start; return CToken(ET_LEFT_PARENTHESIS, expression.substr(start, cursor - p_start)); }
