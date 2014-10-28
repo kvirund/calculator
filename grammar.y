@@ -10,7 +10,6 @@
 %extra_argument { void* state }
 %parse_failure { fprintf(stderr, "\033[1;32mParser failure... :(\033[0m\n"); }
 %syntax_error { fprintf(stderr, "\033[1;31mSyntax error!\033[0m\n"); }
-%include {#include <assert.h>}
 
 expression ::= expr .
 

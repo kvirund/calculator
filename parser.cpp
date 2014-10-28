@@ -1,27 +1,10 @@
 #include "parser.h"
 
-#include "grammar.h"
 #include "scanner.h"
+#include "grammar.h"
+#include "grammar.c"
 
 #include <cstdlib>
-
-extern "C"
-{
-    /*
-     * Definitions of the Lemon parser functions
-     */
-    void *ParseAlloc(void *(*mallocProc)(size_t));
-    void Parse(
-      void *yyp,                   /* The parser */
-      int yymajor,                 /* The major token code number */
-      int yyminor,                 /* The value for the token */
-      void*                        /* Optional %extra_argument parameter */
-    );
-    void ParseFree(
-      void *p,                    /* The parser to be deleted */
-      void (*freeProc)(void*)     /* Function used to reclaim memory */
-    );
-}
 
 namespace parser
 {
@@ -468,12 +451,14 @@ bool CParserImpl::parse(const std::string& line)
             ET_ERROR != t.token() && ET_EOF != t.token();
             t = scanner::scan(line, offset))
     {
-        Parse(parser, t.token(), t.token(), state);
+        Parse(parser, t.token(), NULL, state);
     }
     std::cout << "last touch" << std::endl;
     Parse(parser, ET_END, ET_END, &state);
     std::cout << "end parsing" << std::endl;
     ParseFree(parser, free);
+
+    return false;
 }
 
 bool CParser::parse(const std::string& expression)
