@@ -2,9 +2,24 @@
 
 #include "scanner.h"
 #include "grammar.h"
-#include "grammar.c"
+#include "state.h"
 
 #include <cstdlib>
+
+extern "C"
+{
+    void *ParseAlloc(void *(*mallocProc)(size_t));
+    void Parse(
+            void *yyp,                   /* The parser */
+            int yymajor,                 /* The major token code number */
+            void* yyminor,               /* The value for the token */
+            void*                        /* Optional %extra_argument parameter */
+            );
+    void ParseFree(
+            void *p,                    /* The parser to be deleted */
+            void (*freeProc)(void*)     /* Function used to reclaim memory */
+            );
+}
 
 namespace parser
 {
@@ -318,6 +333,21 @@ CValue operator-(const CValue& a, const CValue& b)
     }
 }
 
+CValue operator-(const CValue& a)
+{
+    switch (a.type())
+    {
+        case CValue::ETYPE_INTEGER:
+            return -a.get_integer();
+
+        case CValue::ETYPE_FLOAT:
+            return -a.get_float();
+
+        default:
+            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[a.type()] + " for operation -").c_str());
+    }
+}
+
 CValue operator/(const CValue& a, const CValue& b)
 {
     const CValue::EType type = CValue::top_type(a.type(), b.type());
@@ -327,10 +357,26 @@ CValue operator/(const CValue& a, const CValue& b)
     switch (type)
     {
         case CValue::ETYPE_INTEGER:
-            return l.get_integer() - r.get_integer();
+            return l.get_integer() / r.get_integer();
 
         case CValue::ETYPE_FLOAT:
-            return l.get_float() - r.get_float();
+            return l.get_float() / r.get_float();
+
+        default:
+            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation /").c_str());
+    }
+}
+
+CValue operator%(const CValue& a, const CValue& b)
+{
+    const CValue::EType type = CValue::top_type(a.type(), b.type());
+    const CValue& l = a.type() == type ? a : a.cast_to(type);
+    const CValue& r = b.type() == type ? b : b.cast_to(type);
+
+    switch (type)
+    {
+        case CValue::ETYPE_INTEGER:
+            return l.get_integer() % r.get_integer();
 
         default:
             throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation /").c_str());
@@ -346,10 +392,10 @@ CValue operator*(const CValue& a, const CValue& b)
     switch (type)
     {
         case CValue::ETYPE_INTEGER:
-            return l.get_integer() - r.get_integer();
+            return l.get_integer() * r.get_integer();
 
         case CValue::ETYPE_FLOAT:
-            return l.get_float() - r.get_float();
+            return l.get_float() * r.get_float();
 
         default:
             throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation *").c_str());
@@ -442,8 +488,15 @@ CParserImpl* CParser::impl()
 bool CParserImpl::parse(const std::string& line)
 {
     void* parser;
-    void* state = NULL;
     size_t offset = 0;
+    CTree tree;
+    SState state = {offset: 0, syntax_error: 0, tree: &tree};
+
+    if (line.empty())
+    {
+        std::cerr << "\033[1;31mLine may not be empty\033[0m" << std::endl;
+        return false;
+    }
 
     parser = ParseAlloc(malloc);
     std::cout << "start parsing '" << line << "'" << std::endl;
@@ -451,11 +504,28 @@ bool CParserImpl::parse(const std::string& line)
             ET_ERROR != t.token() && ET_EOF != t.token();
             t = scanner::scan(line, offset))
     {
-        Parse(parser, t.token(), NULL, state);
+        CParserNode* node = CTreeNodeFactory::createParserNode(t.value());
+        Parse(parser, t.token(), node, &state);
+        if (state.syntax_error)
+        {
+            break;
+        }
+        state.offset = offset;
+        delete node;
     }
-    std::cout << "last touch" << std::endl;
-    Parse(parser, ET_END, ET_END, &state);
-    std::cout << "end parsing" << std::endl;
+    if (!state.syntax_error)
+    {
+        Parse(parser, ET_END, ET_END, &state);
+    }
+    if (state.syntax_error)
+    {
+        std::cerr << "\033[0;32mSyntax error at offset " << state.offset << ":\033[0m" << std::endl;
+        std::string msg = line;
+        msg.insert(state.offset, "\033[1;34m");
+        msg = "'" + msg;
+        msg.append("\033[0m'");
+        std::cerr << msg << std::endl;
+    }
     ParseFree(parser, free);
 
     return false;

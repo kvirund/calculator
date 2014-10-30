@@ -5,6 +5,8 @@
 
 int main(int argc, char **argv)
 {
+    parser::CTreeNode* node1 = parser::CTreeNodeFactory::createVariableNode("asdf");
+    parser::CTreeNode* node2 = parser::CTreeNodeFactory::createVariableNode("asdf");
     do
     {
         std::string line;

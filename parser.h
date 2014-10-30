@@ -1,6 +1,7 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <list>
@@ -92,13 +93,15 @@ CValue operator>(const CValue& a, const CValue& b);
 CValue operator>=(const CValue& a, const CValue& b);
 CValue operator+(const CValue& a, const CValue& b);
 CValue operator-(const CValue& a, const CValue& b);
+CValue operator-(const CValue& a);
 CValue operator/(const CValue& a, const CValue& b);
+CValue operator%(const CValue& a, const CValue& b);
 CValue operator*(const CValue& a, const CValue& b);
 
 class CVariable
 {
     public:
-        CVariable(): m_name(""), m_value() {}
+        CVariable(): m_name("") {}
         CVariable(const std::string& name): m_name(name) {}
         CVariable(const std::string& name, const CValue& value): m_name(name), m_value(value) {}
         const CValue& value() const { return m_value; }
@@ -127,6 +130,20 @@ class CTreeNode
         virtual CValue value() const = 0;
 };
 
+class CParserNode: public CTreeNode
+{
+    public:
+        CParserNode(const std::string& value): m_value(value) {}
+        CValue value() const { return m_value; }
+        long long int as_integer() const { return atoi(m_value.get_string().c_str()); }
+        float as_float() const { return atof(m_value.get_string().c_str()); }
+        bool as_boolean() const { return 0 != atoi(m_value.get_string().c_str()); }
+        const std::string& as_string() const { return m_value.get_string(); }
+
+    private:
+        CValue m_value;
+};
+
 class CLeafTreeNode: public CTreeNode
 {
 };
@@ -134,10 +151,10 @@ class CLeafTreeNode: public CTreeNode
 class CConstantTreeNode: public CLeafTreeNode
 {
     public:
-        CConstantTreeNode(long long int value): m_value(value) {}
-        CConstantTreeNode(long double value): m_value(value) {}
-        CConstantTreeNode(bool value): m_value(value) {}
-        CConstantTreeNode(const std::string& value): m_value(value) {}
+        explicit CConstantTreeNode(long long int value): m_value(value) {}
+        explicit CConstantTreeNode(long double value): m_value(value) {}
+        explicit CConstantTreeNode(bool value): m_value(value) {}
+        explicit CConstantTreeNode(const std::string& value): m_value(value) {}
         CValue value() const { return m_value; }
 
     private:
@@ -178,6 +195,20 @@ class CUnaryOperator: public COperatorTreeNode
         }
 };
 
+class CNegativeOperator: public CUnaryOperator
+{
+    public:
+        CValue value() const
+        {
+            if (m_arguments.empty())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
+            const CValue& v = m_arguments.front();
+            return -v;
+        }
+};
+
 class CBinaryOperator: public COperatorTreeNode
 {
     public:
@@ -196,6 +227,10 @@ class CAddOperator: public CBinaryOperator
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() + m_arguments.back()->value();
         }
 };
@@ -205,6 +240,10 @@ class CSubOperator: public CBinaryOperator
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() - m_arguments.back()->value();
         }
 };
@@ -214,15 +253,36 @@ class CDivOperator: public CBinaryOperator
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() / m_arguments.back()->value();
         }
 };
 
-class CMulOperator: public CBinaryOperator
+class CModOperator: public CBinaryOperator
 {
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
+            return m_arguments.front()->value() % m_arguments.back()->value();
+        }
+};
+
+class CTimesOperator: public CBinaryOperator
+{
+    public:
+        CValue value() const
+        {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() * m_arguments.back()->value();
         }
 };
@@ -232,6 +292,10 @@ class CLessOperator: public CBinaryOperator
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() < m_arguments.back()->value();
         }
 };
@@ -241,6 +305,10 @@ class CLessOrEqualOperator: public CBinaryOperator
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() <= m_arguments.back()->value();
         }
 };
@@ -250,6 +318,10 @@ class CEqualOperator: public CBinaryOperator
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() == m_arguments.back()->value();
         }
 };
@@ -259,6 +331,10 @@ class CNotEqualOperator: public CBinaryOperator
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() != m_arguments.back()->value();
         }
 };
@@ -268,6 +344,10 @@ class CGreaterOperator: public CBinaryOperator
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() > m_arguments.back()->value();
         }
 };
@@ -277,6 +357,10 @@ class CGreaterOrEqualOperator: public CBinaryOperator
     public:
         CValue value() const
         {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
             return m_arguments.front()->value() >= m_arguments.back()->value();
         }
 };
@@ -285,6 +369,8 @@ class CTree
 {
     public:
         CTree(): m_root(NULL) {}
+        void root(CTreeNode* node) { m_root = node; }
+        const CTreeNode* root() const { return m_root; }
 
     private:
         CTreeNode* m_root;
@@ -293,6 +379,7 @@ class CTree
 class CTreeNodeFactory
 {
     public:
+        static CParserNode* createParserNode(const std::string& value) { return new CParserNode(value); }
         static CConstantTreeNode* createConstantNode(long long int value) { return new CConstantTreeNode(value); }
         static CConstantTreeNode* createConstantNode(long double value) { return new CConstantTreeNode(value); }
         static CConstantTreeNode* createConstantNode(bool value) { return new CConstantTreeNode(value); }
@@ -306,8 +393,10 @@ class CTreeNodeFactory
         static CGreaterOrEqualOperator* createGreaterOrEqualOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CGreaterOrEqualOperator>(left, right); }
         static CAddOperator* createAddOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CAddOperator>(left, right); }
         static CSubOperator* createSubOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CSubOperator>(left, right); }
-        static CMulOperator* createMulOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CMulOperator>(left, right); }
+        static CNegativeOperator* createNegativeOperator(const CTreeNode* node) { CNegativeOperator* o = new CNegativeOperator(); o->add_argument(node); return o; }
         static CDivOperator* createDivOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CDivOperator>(left, right); }
+        static CModOperator* createModOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CModOperator>(left, right); }
+        static CTimesOperator* createTimesOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CTimesOperator>(left, right); }
 
     private:
         template <class T>
