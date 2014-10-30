@@ -128,6 +128,32 @@ CValue CValue::cast_to(EType type) const
     }
 }
 
+void CValue::dump(std::ostream& os) const
+{
+    switch (m_type)
+    {
+        case ETYPE_INTEGER:
+            os << "INTEGER(" << get_integer() << ")";
+            break;
+
+        case ETYPE_FLOAT:
+            os << "FLOAT(" << get_float() << ")";
+            break;
+
+        case ETYPE_BOOLEAN:
+            os << "BOOLEAN(" << (get_boolean() ? "true" : "false") << ")";
+            break;
+
+        case ETYPE_STRING:
+            os << "STRING(\"" << get_string() << "\")";
+            break;
+
+        case ETYPE_UNDEFINED:
+            os << "<Undefined value>";
+            break;
+    }
+}
+
 CValue::EType CValue::top_type(CValue::EType a, CValue::EType b)
 {
 #define TOP(x, y, z) do { if (a == (x) && b == (y)) { return (z); } } while (false)
@@ -166,7 +192,7 @@ CValue operator<(const CValue& a, const CValue& b)
             return l.get_string() < r.get_string();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation <").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation <").c_str());
     }
 }
 
@@ -191,7 +217,7 @@ CValue operator<=(const CValue& a, const CValue& b)
             return l.get_string() <= r.get_string();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation <=").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation <=").c_str());
     }
 }
 
@@ -216,7 +242,7 @@ CValue operator==(const CValue& a, const CValue& b)
             return l.get_string() == r.get_string();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation ==").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation ==").c_str());
     }
 }
 
@@ -241,7 +267,7 @@ CValue operator!=(const CValue& a, const CValue& b)
             return l.get_string() != r.get_string();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation !=").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation !=").c_str());
     }
 }
 
@@ -266,7 +292,7 @@ CValue operator>(const CValue& a, const CValue& b)
             return l.get_string() > r.get_string();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation >").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation >").c_str());
     }
 }
 
@@ -291,7 +317,7 @@ CValue operator>=(const CValue& a, const CValue& b)
             return l.get_string() >= r.get_string();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation >=").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation >=").c_str());
     }
 }
 
@@ -310,7 +336,7 @@ CValue operator+(const CValue& a, const CValue& b)
             return l.get_float() + r.get_float();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation +").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation +").c_str());
     }
 }
 
@@ -329,7 +355,7 @@ CValue operator-(const CValue& a, const CValue& b)
             return l.get_float() - r.get_float();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation -").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation -").c_str());
     }
 }
 
@@ -344,7 +370,7 @@ CValue operator-(const CValue& a)
             return -a.get_float();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[a.type()] + " for operation -").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[a.type()] + " for operation -").c_str());
     }
 }
 
@@ -363,7 +389,7 @@ CValue operator/(const CValue& a, const CValue& b)
             return l.get_float() / r.get_float();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation /").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation /").c_str());
     }
 }
 
@@ -379,7 +405,7 @@ CValue operator%(const CValue& a, const CValue& b)
             return l.get_integer() % r.get_integer();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation /").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation /").c_str());
     }
 }
 
@@ -398,7 +424,7 @@ CValue operator*(const CValue& a, const CValue& b)
             return l.get_float() * r.get_float();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type") + TYPE_NAMES[type] + " for operation *").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation *").c_str());
     }
 }
 
@@ -443,15 +469,20 @@ std::ostream& operator<<(std::ostream& os, const CValue& v)
     {
         case CValue::ETYPE_INTEGER:
             return os << v.get_integer();
+
         case CValue::ETYPE_FLOAT:
             return os << v.get_float();
+
         case CValue::ETYPE_BOOLEAN:
-            return os << v.get_boolean();
+            return os << (v.get_boolean() ? "true" : "false");
+
         case CValue::ETYPE_STRING:
             return os << "\"" << v.get_string() << "\"";
+
         case CValue::ETYPE_UNDEFINED:
             return os << "<Undefined value>";
     }
+    return os;
 }
 
 CValue::CValue(const CValue& from)
@@ -469,45 +500,35 @@ const CVariable& CVariables::get_variable(const std::string& name) const
     variables_map_t::const_iterator v = m_variables.find(name);
     if (m_variables.end() == v)
     {
-        throw CParserException("Variable is not defined");
+        throw CRuntimeException(("Variable '" + name + "' is not defined").c_str());
     }
     return v->second;
 }
 
-class CParserImpl
+void CVariableTreeNode::dump(std::ostream& os, int i) const
 {
-    public:
-        typedef std::list<scanner::CToken> tokens_list_t;
-
-        CParserImpl() {}
-        bool parse(const std::string& expression);
-        CValue evaluate() const { return m_tree.value(); }
-
-    private:
-        CTree m_tree;
-};
-
-CParserImpl* CParser::impl()
-{
-    if (!m_impl)
+    indent(os, i) << "CVariableTreeNode: ";
+    if (m_variables_pool->is_variable_set(m_name))
     {
-        m_impl = new CParserImpl();
-        if (NULL == m_impl)
-        {
-            throw CParserException("Cannot create instance of CParserImpl()");
-        }
+        m_variables_pool->get_variable(m_name).dump(os);
     }
-    return m_impl;
+    else
+    {
+        os << "<variable is not defined>";
+    }
+    os << std::endl;
 }
 
-bool CParserImpl::parse(const std::string& line)
+bool CParser::parse(const std::string& line)
 {
     void* parser;
     size_t offset = 0;
-    SState state = {offset: 0, syntax_error: 0, tree: &m_tree};
+    SState state = {offset: 0, syntax_error: 0, tree: &m_tree, vpool: &m_variables_pool};
+    m_state = EPS_UNDEFINED;
 
     if (line.empty())
     {
+        m_state = EPS_ERROR;
         std::cerr << "\033[1;31mLine may not be empty\033[0m" << std::endl;
         return false;
     }
@@ -520,13 +541,13 @@ bool CParserImpl::parse(const std::string& line)
             t = scanner::scan(line, offset))
     {
         CParserNode* node = CTreeNodeFactory::createParserNode(t.value());
+        nodes.push_back(node);
         Parse(parser, t.token(), node, &state);
         if (state.syntax_error)
         {
             break;
         }
         state.offset = offset;
-        nodes.push_back(node);
     }
     if (!state.syntax_error)
     {
@@ -534,12 +555,17 @@ bool CParserImpl::parse(const std::string& line)
     }
     if (state.syntax_error)
     {
+        m_state = EPS_ERROR;
         std::cerr << "\033[0;32mSyntax error at offset " << state.offset << ":\033[0m" << std::endl;
         std::string msg = line;
         msg.insert(state.offset, "\033[1;34m");
         msg = "'" + msg;
         msg.append("\033[0m'");
         std::cerr << msg << std::endl;
+    }
+    else
+    {
+        m_state = EPS_READY;
     }
     ParseFree(parser, free);
 
@@ -549,25 +575,12 @@ bool CParserImpl::parse(const std::string& line)
         nodes.pop_front();
     }
 
-    return false;
-}
-
-CValue CParser::evaluate()
-{
-    return impl()->evaluate();
-}
-
-bool CParser::parse(const std::string& expression)
-{
-    try
-    {
-        bool result = impl()->parse(expression);
-        m_state = result ? EPS_READY : EPS_ERROR;
-    } catch (const CParserException& e)
-    {
-        m_state = EPS_UNDEFINED;
-    }
-
     return EPS_READY == m_state;
 }
+
+void CParser::dump_tree(std::ostream& os) const
+{
+    os << "Parser state is " << (EPS_UNDEFINED == m_state ? "UNDEFINED" : (EPS_ERROR == m_state ? "ERROR" : "READY")) << std::endl;
+    m_tree.dump(os);
+};
 }

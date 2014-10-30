@@ -6,11 +6,12 @@ typedef parser::CTreeNodeFactory parser_factory;
 
 extern "C"
 {
-void* create_identifier(void* n)
+void* create_identifier(void* n, void* vp)
 {
     parser::CParserNode* node = static_cast<parser::CParserNode*>(n);
     const std::string name = node->as_string();
-    parser::CVariableTreeNode* new_node = parser_factory::createVariableNode(name);
+    const parser::CVariables* vpool = static_cast<parser::CVariables*>(vp);
+    parser::CVariableTreeNode* new_node = parser_factory::createVariableNode(name, vpool);
     return new_node;
 }
 

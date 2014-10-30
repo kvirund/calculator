@@ -19,12 +19,13 @@
 #include <assert.h>
 #include "state.h"
 }
+%token_destructor { }
 
 expression ::= expr(ROOT) . { set_root(state->tree, ROOT); }
 
 term(T) ::= IDENTIFIER(I) .
     {
-        T = create_identifier(I);
+        T = create_identifier(I, state->vpool);
     }
 term(T) ::= INTEGER(I) .
     {

@@ -6,12 +6,13 @@ struct SState
     int offset;
     int syntax_error;
     void* tree;
+    void* vpool;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-void* create_identifier(void* node);
+void* create_identifier(void* node, void* vpool);
 void* create_integer(void* node);
 void* create_float(void* node);
 void* create_boolean(void* node);
