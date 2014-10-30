@@ -9,7 +9,8 @@ extern "C"
 void* create_identifier(void* n)
 {
     parser::CParserNode* node = static_cast<parser::CParserNode*>(n);
-    parser::CVariableTreeNode* new_node = parser_factory::createVariableNode(node->as_string());
+    const std::string name = node->as_string();
+    parser::CVariableTreeNode* new_node = parser_factory::createVariableNode(name);
     return new_node;
 }
 

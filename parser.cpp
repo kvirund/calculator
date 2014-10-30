@@ -437,6 +437,23 @@ CValue& CValue::operator=(const CValue& right)
     return *this;
 }
 
+std::ostream& operator<<(std::ostream& os, const CValue& v)
+{
+    switch (v.type())
+    {
+        case CValue::ETYPE_INTEGER:
+            return os << v.get_integer();
+        case CValue::ETYPE_FLOAT:
+            return os << v.get_float();
+        case CValue::ETYPE_BOOLEAN:
+            return os << v.get_boolean();
+        case CValue::ETYPE_STRING:
+            return os << "\"" << v.get_string() << "\"";
+        case CValue::ETYPE_UNDEFINED:
+            return os << "<Undefined value>";
+    }
+}
+
 CValue::CValue(const CValue& from)
 {
     *this = from;
@@ -464,13 +481,11 @@ class CParserImpl
 
         CParserImpl() {}
         bool parse(const std::string& expression);
-        bool build_tree(const tokens_list_t& tokens);
-};
+        CValue evaluate() const { return m_tree.value(); }
 
-bool CParserImpl::build_tree(const tokens_list_t& tokens)
-{
-    return false;
-}
+    private:
+        CTree m_tree;
+};
 
 CParserImpl* CParser::impl()
 {
@@ -489,8 +504,7 @@ bool CParserImpl::parse(const std::string& line)
 {
     void* parser;
     size_t offset = 0;
-    CTree tree;
-    SState state = {offset: 0, syntax_error: 0, tree: &tree};
+    SState state = {offset: 0, syntax_error: 0, tree: &m_tree};
 
     if (line.empty())
     {
@@ -500,6 +514,7 @@ bool CParserImpl::parse(const std::string& line)
 
     parser = ParseAlloc(malloc);
     std::cout << "start parsing '" << line << "'" << std::endl;
+    std::list<CParserNode*> nodes;
     for (scanner::CToken t = scanner::scan(line, offset);
             ET_ERROR != t.token() && ET_EOF != t.token();
             t = scanner::scan(line, offset))
@@ -511,7 +526,7 @@ bool CParserImpl::parse(const std::string& line)
             break;
         }
         state.offset = offset;
-        delete node;
+        nodes.push_back(node);
     }
     if (!state.syntax_error)
     {
@@ -528,7 +543,18 @@ bool CParserImpl::parse(const std::string& line)
     }
     ParseFree(parser, free);
 
+    while (!nodes.empty())
+    {
+        delete nodes.front();
+        nodes.pop_front();
+    }
+
     return false;
+}
+
+CValue CParser::evaluate()
+{
+    return impl()->evaluate();
 }
 
 bool CParser::parse(const std::string& expression)

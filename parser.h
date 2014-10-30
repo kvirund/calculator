@@ -98,6 +98,8 @@ CValue operator/(const CValue& a, const CValue& b);
 CValue operator%(const CValue& a, const CValue& b);
 CValue operator*(const CValue& a, const CValue& b);
 
+std::ostream& operator<<(std::ostream& os, const CValue& v);
+
 class CVariable
 {
     public:
@@ -371,6 +373,14 @@ class CTree
         CTree(): m_root(NULL) {}
         void root(CTreeNode* node) { m_root = node; }
         const CTreeNode* root() const { return m_root; }
+        CValue value() const
+        {
+            if (!m_root)
+            {
+                throw CRuntimeException("Root has not been set");
+            }
+            return m_root->value();
+        }
 
     private:
         CTreeNode* m_root;
@@ -416,6 +426,7 @@ class CParser
     public:
         CParser(): m_state(EPS_UNDEFINED) {}
         bool parse(const std::string& expression);
+        CValue evaluate();
 
     private:
         CParserImpl* impl();

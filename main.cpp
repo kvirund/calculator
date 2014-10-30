@@ -17,6 +17,7 @@ int main(int argc, char **argv)
         }
         parser::CParser parser;
         parser.parse(line);
+        std::cout << "Value: " << parser.evaluate() << std::endl;
     } while (true);
 
     return 0;
