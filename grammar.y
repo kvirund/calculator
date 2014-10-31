@@ -26,38 +26,118 @@ expression ::= expr(ROOT) . { set_root(state->tree, ROOT); }
 term(T) ::= IDENTIFIER(I) .
     {
         T = create_identifier(I, state->vpool);
+        add_to_temp_set(T, state->temp_set);
     }
 term(T) ::= INTEGER(I) .
     {
         T = create_integer(I);
+        add_to_temp_set(T, state->temp_set);
     }
 term(T) ::= FLOAT(F) .
     {
         T = create_float(F);
+        add_to_temp_set(T, state->temp_set);
     }
 term(T) ::= BOOLEAN(B) .
     {
         T = create_boolean(B);
+        add_to_temp_set(T, state->temp_set);
     }
 term(T) ::= STRING(S) .
     {
         T = create_string(S);
+        add_to_temp_set(T, state->temp_set);
     }
 
 expr(E) ::= term(T) . { E = T; }
 
 expr(R) ::= SPACE expr(E) . { R = E; }
 expr(R) ::= expr(E) SPACE . {R = E; }
-expr(R) ::= expr(A) PLUS expr(B) . { R = create_add_operator(A, B); }
-expr(R) ::= expr(A) MINUS expr(B) . { R = create_sub_operator(A, B); }
-expr(R) ::= expr(A) DIVIDE expr(B) . { R = create_div_operator(A, B); }
-expr(R) ::= expr(A) MOD expr(B) . { R = create_mod_operator(A, B); }
-expr(R) ::= expr(A) TIMES expr(B) . { R = create_times_operator(A, B); }
-expr(R) ::= LEFT_P expr(E) RIGHT_P . { R = E; }
-expr(R) ::= MINUS expr(E) . [NOT] { R = create_minus_operator(E); }
-expr(R) ::= expr(A) LESS expr(B) . { R = create_less_operator(A, B); }
-expr(R) ::= expr(A) LESS_OR_EQUAL expr(B) . { R = create_less_or_equal_operator(A, B); }
-expr(R) ::= expr(A) GREATER expr(B) . { R = create_greater_operator(A, B); }
-expr(R) ::= expr(A) GREATER_OR_EQUAL expr(B) . { R = create_greater_or_equal_operator(A, B); }
-expr(R) ::= expr(A) EQUAL expr(B) . { R = create_equal_operator(A, B); }
-expr(R) ::= expr(A) NOT_EQUAL expr(B) . { R = create_not_equal_operator(A, B); }
+expr(R) ::= expr(A) PLUS expr(B) .
+{
+    R = create_add_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) MINUS expr(B) .
+{
+    R = create_sub_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) DIVIDE expr(B) .
+
+{
+    R = create_div_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) MOD expr(B) . 
+{
+    R = create_mod_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) TIMES expr(B) . 
+{
+    R = create_times_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= LEFT_P expr(E) RIGHT_P . 
+{
+    R = E;
+}
+expr(R) ::= MINUS expr(E) . [NOT] 
+{
+    R = create_minus_operator(E);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(E, state->temp_set);
+}
+expr(R) ::= expr(A) LESS expr(B) . 
+{
+    R = create_less_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) LESS_OR_EQUAL expr(B) . 
+{
+    R = create_less_or_equal_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) GREATER expr(B) . 
+{
+    R = create_greater_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) GREATER_OR_EQUAL expr(B) . 
+{
+    R = create_greater_or_equal_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) EQUAL expr(B) . 
+{
+    R = create_equal_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) NOT_EQUAL expr(B) . 
+{
+    R = create_not_equal_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}

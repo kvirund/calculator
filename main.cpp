@@ -26,13 +26,13 @@ int main(int argc, char **argv)
         parser.clear_tree();
         parser.parse(line);
 #ifdef DUMP_TREE
-        parser.dump_tree(std::cerr);
+        parser.dump_tree(std::cout);
 #endif
         if (parser.ready())
         {
             try
             {
-                std::cerr << "Value: " GREEN << parser.evaluate() << RESET << std::endl;
+                std::cout << "Value: " GREEN << parser.evaluate() << RESET << std::endl;
             } catch (const parser::CRuntimeException& e)
             {
                 std::cerr << RED "Runtime error: " << e.what() << RESET << std::endl;

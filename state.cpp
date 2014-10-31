@@ -6,6 +6,20 @@ typedef parser::CTreeNodeFactory parser_factory;
 
 extern "C"
 {
+void add_to_temp_set(void *n, void* ts)
+{
+    parser::CTreeNode* node = static_cast<parser::CTreeNode*>(n);
+    parser::CTreeNode::ptr_set_t* set = static_cast<parser::CTreeNode::ptr_set_t*>(ts);
+    set->insert(node);
+}
+
+void remove_from_temp_set(void* n, void* ts)
+{
+    parser::CTreeNode* node = static_cast<parser::CTreeNode*>(n);
+    parser::CTreeNode::ptr_set_t* set = static_cast<parser::CTreeNode::ptr_set_t*>(ts);
+    set->erase(node);
+}
+
 void* create_identifier(void* n, void* vp)
 {
     parser::CParserNode* node = static_cast<parser::CParserNode*>(n);

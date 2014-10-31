@@ -8,11 +8,11 @@
 #include <string>
 #include <list>
 #include <map>
+#include <set>
 
 namespace parser
 {
-inline
-std::ostream& indent(std::ostream& os, int l)
+inline std::ostream& indent(std::ostream& os, int l)
 {
     while (0 < l)
     {
@@ -150,6 +150,7 @@ class CVariables
 class CTreeNode
 {
     public:
+        typedef std::set<CTreeNode*> ptr_set_t;
         virtual CValue value() const = 0;
         virtual void dump(std::ostream& os, int indent = 0) const = 0;
         virtual ~CTreeNode() {};
@@ -467,7 +468,14 @@ class CTree
         void dump(std::ostream& os, int i = 0) const;
         void clear();
 
-        ~CTree() { delete m_root; }
+        ~CTree()
+        {
+            if (m_root)
+            {
+                delete m_root;
+            }
+            m_root = NULL;
+        }
 
     private:
         CTree(const CTree&);
@@ -522,6 +530,7 @@ class CParser
         void clear_tree() { m_tree.clear(); }
         void reset();
         bool ready() const { return EPS_READY == m_state; }
+        ~CParser() { reset(); }
 
     private:
         EParserState m_state;

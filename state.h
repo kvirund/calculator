@@ -7,11 +7,14 @@ struct SState
     int syntax_error;
     void* tree;
     void* vpool;
+    void* temp_set;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+void add_to_temp_set(void *node, void* temp_set);
+void remove_from_temp_set(void* node, void* temp_set);
 void* create_identifier(void* node, void* vpool);
 void* create_integer(void* node);
 void* create_float(void* node);

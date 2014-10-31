@@ -517,7 +517,10 @@ CValue CTree::value() const
 
 void CTree::clear()
 {
-    delete m_root;
+    if (m_root)
+    {
+        delete m_root;
+    }
     m_root = NULL;
 }
 
@@ -569,7 +572,9 @@ bool CParser::parse(const std::string& line)
 {
     void* parser;
     size_t offset = 0;
-    SState state = {offset: 0, syntax_error: 0, tree: &m_tree, vpool: &m_variables_pool};
+    CTreeNode::ptr_set_t temp_set;
+    std::list<CParserNode*> nodes;
+    SState state = {offset: 0, syntax_error: 0, tree: &m_tree, vpool: &m_variables_pool, temp_set: &temp_set};
     m_state = EPS_UNDEFINED;
 
     if (line.empty())
@@ -581,7 +586,6 @@ bool CParser::parse(const std::string& line)
 
     parser = ParseAlloc(malloc);
     std::cout << "start parsing '" << line << "'" << std::endl;
-    std::list<CParserNode*> nodes;
     scanner::CToken t;
     for (t = scanner::scan(line, offset);
             ET_ERROR != t.token() && ET_EOF != t.token();
@@ -609,6 +613,12 @@ bool CParser::parse(const std::string& line)
         msg = "'" + msg;
         msg.append(RESET);
         std::cerr << msg << std::endl;
+
+        for (CTreeNode::ptr_set_t::const_iterator i = temp_set.begin(); i != temp_set.end(); i++)
+        {
+            delete *i;
+        }
+        temp_set.clear();
     }
     else
     {
