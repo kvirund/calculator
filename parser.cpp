@@ -3,6 +3,7 @@
 #include "scanner.h"
 #include "grammar.h"
 #include "state.h"
+#include "colors.h"
 
 #include <cstdlib>
 
@@ -505,6 +506,34 @@ const CVariable& CVariables::get_variable(const std::string& name) const
     return v->second;
 }
 
+CValue CTree::value() const
+{
+    if (!m_root)
+    {
+        throw CRuntimeException("Root has not been set");
+    }
+    return m_root->value();
+}
+
+void CTree::clear()
+{
+    delete m_root;
+    m_root = NULL;
+}
+
+void CTree::dump(std::ostream& os, int i) const
+{
+    if (m_root)
+    {
+        m_root->dump(os, i);
+    }
+    else
+    {
+        indent(os, i);
+        os << "Tree is empty" << std::endl;
+    }
+}
+
 void CVariableTreeNode::dump(std::ostream& os, int i) const
 {
     indent(os, i) << "CVariableTreeNode: ";
@@ -519,6 +548,23 @@ void CVariableTreeNode::dump(std::ostream& os, int i) const
     os << std::endl;
 }
 
+void COperatorTreeNode::dump(std::ostream& os, int i) const
+{
+    for (arguments_list_t::const_iterator j = m_arguments.begin(); j != m_arguments.end(); j++)
+    {
+        const CTreeNode* n = *j;
+        n->dump(os, i);
+    }
+}
+
+COperatorTreeNode::~COperatorTreeNode()
+{
+    for (arguments_list_t::const_iterator j = m_arguments.begin(); j != m_arguments.end(); j++)
+    {
+        delete *j;
+    }
+}
+
 bool CParser::parse(const std::string& line)
 {
     void* parser;
@@ -529,14 +575,15 @@ bool CParser::parse(const std::string& line)
     if (line.empty())
     {
         m_state = EPS_ERROR;
-        std::cerr << "\033[1;31mLine may not be empty\033[0m" << std::endl;
+        std::cerr << RED "Line may not be empty" RESET << std::endl;
         return false;
     }
 
     parser = ParseAlloc(malloc);
     std::cout << "start parsing '" << line << "'" << std::endl;
     std::list<CParserNode*> nodes;
-    for (scanner::CToken t = scanner::scan(line, offset);
+    scanner::CToken t;
+    for (t = scanner::scan(line, offset);
             ET_ERROR != t.token() && ET_EOF != t.token();
             t = scanner::scan(line, offset))
     {
@@ -553,14 +600,14 @@ bool CParser::parse(const std::string& line)
     {
         Parse(parser, ET_END, ET_END, &state);
     }
-    if (state.syntax_error)
+    if (state.syntax_error || ET_ERROR == t.token())
     {
         m_state = EPS_ERROR;
-        std::cerr << "\033[0;32mSyntax error at offset " << state.offset << ":\033[0m" << std::endl;
+        std::cerr << GREEN "Syntax error at offset " << state.offset << RESET << std::endl;
         std::string msg = line;
-        msg.insert(state.offset, "\033[1;34m");
+        msg.insert(state.offset, BLUE);
         msg = "'" + msg;
-        msg.append("\033[0m'");
+        msg.append(RESET);
         std::cerr << msg << std::endl;
     }
     else

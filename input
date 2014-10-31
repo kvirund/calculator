@@ -1,11 +1,12 @@
 i+i
 -100
+-100.0
 "qw\\\"er asdf"
 123
 true
 false
 123.456
-0.123e-12
+-0.123e-12
 1e2
 1+2
 1 + 2
@@ -15,14 +16,22 @@ n+-n
 ((i + -f) <= (n * n) / 2) != true
 (n < i) == false
 "asdf" == "zxcv"
+s == s
+"a" != "b"
 0.1234 > 123.4e-3
 -1 > - 3
 TruE
-i != f == b**2
+bf != bt
+bf == bt
+bf < bt
+bt < bf
+s == "hello world!!!"
 1^^3
+i != f == b**2
 i*(i*(i*(i*(i*f)*f))))
 (())
 asdf
+-"100"
 
     
 f+n != true

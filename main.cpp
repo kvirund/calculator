@@ -1,10 +1,19 @@
 #include "parser.h"
+#include "colors.h"
 
 #include <iostream>
 #include <string>
 
 int main(int argc, char **argv)
 {
+    parser::CParser parser;
+    parser.add_variable("i", 123ll);
+    parser.add_variable("n", 3ll);
+    parser.add_variable("f", 123.456l);
+    parser.add_variable("bt", true);
+    parser.add_variable("bf", false);
+    parser.add_variable("s", std::string("hello world!!!"));
+
     do
     {
         std::string line;
@@ -13,15 +22,8 @@ int main(int argc, char **argv)
         {
             break;
         }
-        parser::CParser parser;
 
-        parser.add_variable("i", 123ll);
-        parser.add_variable("n", 3ll);
-        parser.add_variable("f", 123.456l);
-        parser.add_variable("bt", true);
-        parser.add_variable("bf", false);
-        parser.add_variable("s", "hello world!!!");
-
+        parser.clear_tree();
         parser.parse(line);
 #ifdef DUMP_TREE
         parser.dump_tree(std::cerr);
@@ -30,10 +32,10 @@ int main(int argc, char **argv)
         {
             try
             {
-                std::cerr << "Value: " << parser.evaluate() << std::endl;
+                std::cerr << "Value: " GREEN << parser.evaluate() << RESET << std::endl;
             } catch (const parser::CRuntimeException& e)
             {
-                std::cerr << "\033[1;31mRuntime error: " << e.what() << "\033[0m" << std::endl;
+                std::cerr << RED "Runtime error: " << e.what() << RESET << std::endl;
             }
         }
     } while (true);

@@ -139,6 +139,7 @@ class CVariables
         void add_variable(const std::string& name, const CValue& value);
         const CVariable& get_variable(const std::string& name) const;
         bool is_variable_set(const std::string& name) const { return m_variables.end() != m_variables.find(name); }
+        void clear() { m_variables.clear(); }
 
     private:
         typedef std::map<std::string, CVariable> variables_map_t;
@@ -151,6 +152,7 @@ class CTreeNode
     public:
         virtual CValue value() const = 0;
         virtual void dump(std::ostream& os, int indent = 0) const = 0;
+        virtual ~CTreeNode() {};
 };
 
 class CParserNode: public CTreeNode
@@ -202,14 +204,8 @@ class COperatorTreeNode: public CTreeNode
 {
     public:
         virtual void add_argument(const CTreeNode* node) = 0;
-        void dump(std::ostream& os, int i = 0) const
-        {
-            for (arguments_list_t::const_iterator j = m_arguments.begin(); j != m_arguments.end(); j++)
-            {
-                const CTreeNode* n = *j;
-                n->dump(os, i);
-            }
-        }
+        void dump(std::ostream& os, int i = 0) const;
+        ~COperatorTreeNode();
 
     protected:
         typedef std::list<const CTreeNode*> arguments_list_t;
@@ -464,30 +460,20 @@ class CTree
 {
     public:
         CTree(): m_root(NULL) {}
+
         void root(CTreeNode* node) { m_root = node; }
         const CTreeNode* root() const { return m_root; }
-        CValue value() const
-        {
-            if (!m_root)
-            {
-                throw CRuntimeException("Root has not been set");
-            }
-            return m_root->value();
-        }
-        void dump(std::ostream& os, int i = 0) const
-        {
-            if (m_root)
-            {
-                m_root->dump(os, i);
-            }
-            else
-            {
-                indent(os, i);
-                os << "Tree is empty" << std::endl;
-            }
-        }
+        CValue value() const;
+        void dump(std::ostream& os, int i = 0) const;
+        void clear();
+
+        ~CTree() { delete m_root; }
 
     private:
+        CTree(const CTree&);
+        CTree& operator=(const CTree&);
+        const CTree& operator=(const CTree&) const;
+
         CTreeNode* m_root;
 };
 
@@ -532,6 +518,9 @@ class CParser
         void dump_tree(std::ostream& os) const;
         CValue evaluate() const { return m_tree.value(); };
         void add_variable(const std::string& name, const CValue& value) { m_variables_pool.add_variable(name, value); };
+        void clear_variables() { m_variables_pool.clear(); }
+        void clear_tree() { m_tree.clear(); }
+        void reset();
         bool ready() const { return EPS_READY == m_state; }
 
     private:
@@ -540,6 +529,11 @@ class CParser
         CVariables m_variables_pool;
 };
 
+inline void CParser::reset()
+{
+    clear_variables();
+    clear_tree();
+}
 }
 
 #endif
