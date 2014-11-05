@@ -50,7 +50,6 @@ BOOLEAN          { offset += cursor - p_start; return CToken(ET_BOOLEAN, express
 FLOAT            { offset += cursor - p_start; return CToken(ET_FLOAT, expression.substr(start, cursor - p_start)); }
 INTEGER          { offset += cursor - p_start; return CToken(ET_INTEGER, expression.substr(start, cursor - p_start)); }
 STRING           { offset += cursor - p_start; return CToken(ET_STRING, expression.substr(1 + start, cursor - p_start - 2)); }
-IDENTIFIER       { offset += cursor - p_start; return CToken(ET_IDENTIFIER, expression.substr(start, cursor - p_start)); }
 
 LESS             { offset += cursor - p_start; return CToken(ET_LESS, expression.substr(start, cursor - p_start)); }
 GREATER          { offset += cursor - p_start; return CToken(ET_GREATER, expression.substr(start, cursor - p_start)); }
@@ -69,6 +68,8 @@ MINUS            { offset += cursor - p_start; return CToken(ET_MINUS, expressio
 DIVIDE           { offset += cursor - p_start; return CToken(ET_DIVIDE, expression.substr(start, cursor - p_start)); }
 MOD              { offset += cursor - p_start; return CToken(ET_MOD, expression.substr(start, cursor - p_start)); }
 TIMES            { offset += cursor - p_start; return CToken(ET_TIMES, expression.substr(start, cursor - p_start)); }
+
+IDENTIFIER       { offset += cursor - p_start; return CToken(ET_IDENTIFIER, expression.substr(start, cursor - p_start)); }
 
 LEFT_P           { offset += cursor - p_start; return CToken(ET_LEFT_P, expression.substr(start, cursor - p_start)); }
 RIGHT_P          { offset += cursor - p_start; return CToken(ET_RIGHT_P, expression.substr(start, cursor - p_start)); }

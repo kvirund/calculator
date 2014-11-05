@@ -152,9 +152,27 @@ void* create_minus_operator(void* n)
     return new_node;
 }
 
-void set_root(void* tree, void* root)
+void* create_and_operator(void* a, void* b)
 {
-    static_cast<parser::CTree*>(tree)->root(static_cast<parser::CTreeNode*>(root));
+    parser::CTreeNode* node_a = static_cast<parser::CTreeNode*>(a);
+    parser::CTreeNode* node_b = static_cast<parser::CTreeNode*>(b);
+    parser::CTreeNode* new_node = parser_factory::createAndOperator(node_a, node_b);
+    return new_node;
+}
+
+void* create_or_operator(void* a, void* b)
+{
+    parser::CTreeNode* node_a = static_cast<parser::CTreeNode*>(a);
+    parser::CTreeNode* node_b = static_cast<parser::CTreeNode*>(b);
+    parser::CTreeNode* new_node = parser_factory::createOrOperator(node_a, node_b);
+    return new_node;
+}
+
+void* create_not_operator(void* n)
+{
+    parser::CTreeNode* node = static_cast<parser::CTreeNode*>(n);
+    parser::CTreeNode* new_node = parser_factory::createNotOperator(node);
+    return new_node;
 }
 
 void delete_node(void* node)

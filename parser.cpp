@@ -429,6 +429,50 @@ CValue operator*(const CValue& a, const CValue& b)
     }
 }
 
+CValue operator&&(const CValue& a, const CValue& b)
+{
+    const CValue::EType type = CValue::ETYPE_BOOLEAN;
+    const CValue& l = a.type() == type ? a : a.cast_to(type);
+    const CValue& r = b.type() == type ? b : b.cast_to(type);
+
+    switch (type)
+    {
+        case CValue::ETYPE_BOOLEAN:
+            return l.get_boolean() && r.get_boolean();
+
+        default:
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation *").c_str());
+    }
+}
+
+CValue operator||(const CValue& a, const CValue& b)
+{
+    const CValue::EType type = CValue::ETYPE_BOOLEAN;
+    const CValue& l = a.type() == type ? a : a.cast_to(type);
+    const CValue& r = b.type() == type ? b : b.cast_to(type);
+
+    switch (type)
+    {
+        case CValue::ETYPE_BOOLEAN:
+            return l.get_boolean() || r.get_boolean();
+
+        default:
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation *").c_str());
+    }
+}
+
+CValue operator!(const CValue& a)
+{
+    switch (a.type())
+    {
+        case CValue::ETYPE_BOOLEAN:
+            return !a.get_boolean();
+
+        default:
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[a.type()] + " for operation -").c_str());
+    }
+}
+
 CValue& CValue::operator=(const CValue& right)
 {
     if (this != &right)
@@ -574,7 +618,7 @@ bool CParser::parse(const std::string& line)
     size_t offset = 0;
     CTreeNode::ptr_set_t temp_set;
     std::list<CParserNode*> nodes;
-    SState state = {offset: 0, syntax_error: 0, tree: &m_tree, vpool: &m_variables_pool, temp_set: &temp_set};
+    SState state = {offset: 0, syntax_error: 0, root: NULL, vpool: &m_variables_pool, temp_set: &temp_set};
     m_state = EPS_UNDEFINED;
 
     if (line.empty())
@@ -611,7 +655,7 @@ bool CParser::parse(const std::string& line)
         std::string msg = line;
         msg.insert(state.offset, BLUE);
         msg = "'" + msg;
-        msg.append(RESET);
+        msg.append(RESET "'");
         std::cerr << msg << std::endl;
 
         for (CTreeNode::ptr_set_t::const_iterator i = temp_set.begin(); i != temp_set.end(); i++)
@@ -623,6 +667,7 @@ bool CParser::parse(const std::string& line)
     else
     {
         m_state = EPS_READY;
+        m_tree.root(static_cast<CTreeNode*>(state.root));
     }
     ParseFree(parser, free);
 

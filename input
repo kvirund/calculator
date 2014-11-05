@@ -26,6 +26,11 @@ bf == bt
 bf < bt
 bt < bf
 s == "hello world!!!"
+true and false
+true or false
+not (1 < 2)
+(not bt and bf) or (bt and not bf)
+not (bf and bt) == not bf or not bt
 1^^3
 i != f == b**2
 i*(i*(i*(i*(i*f)*f))))

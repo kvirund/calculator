@@ -111,6 +111,9 @@ CValue operator-(const CValue& a);
 CValue operator/(const CValue& a, const CValue& b);
 CValue operator%(const CValue& a, const CValue& b);
 CValue operator*(const CValue& a, const CValue& b);
+CValue operator&&(const CValue& a, const CValue& b);
+CValue operator||(const CValue& a, const CValue& b);
+CValue operator!(const CValue& a);
 
 std::ostream& operator<<(std::ostream& os, const CValue& v);
 
@@ -237,11 +240,30 @@ class CNegativeOperator: public CUnaryOperator
                 throw CRuntimeException("Not enough arguments");
             }
             const CTreeNode* v = m_arguments.front();
-            return -(v->value());
+            return -v->value();
         }
         void dump(std::ostream& os, int i = 0) const
         {
             indent(os, i) << "CNegativeOperator: " << m_arguments.size() << " operands" << std::endl;
+            COperatorTreeNode::dump(os, 1 + i);
+        }
+};
+
+class CNotOperator: public CUnaryOperator
+{
+    public:
+        CValue value() const
+        {
+            if (m_arguments.empty())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
+            const CTreeNode* v = m_arguments.front();
+            return !v->value();
+        }
+        void dump(std::ostream& os, int i = 0) const
+        {
+            indent(os, i) << "CNotOperator: " << m_arguments.size() << " operands" << std::endl;
             COperatorTreeNode::dump(os, 1 + i);
         }
 };
@@ -457,6 +479,42 @@ class CGreaterOrEqualOperator: public CBinaryOperator
         }
 };
 
+class CAndOperator: public CBinaryOperator
+{
+    public:
+        CValue value() const
+        {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
+            return m_arguments.front()->value() && m_arguments.back()->value();
+        }
+        void dump(std::ostream& os, int i = 0) const
+        {
+            indent(os, i) << "CAndOperator: " << m_arguments.size() << " operands" << std::endl;
+            COperatorTreeNode::dump(os, 1 + i);
+        }
+};
+
+class COrOperator: public CBinaryOperator
+{
+    public:
+        CValue value() const
+        {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
+            return m_arguments.front()->value() || m_arguments.back()->value();
+        }
+        void dump(std::ostream& os, int i = 0) const
+        {
+            indent(os, i) << "COrOperator: " << m_arguments.size() << " operands" << std::endl;
+            COperatorTreeNode::dump(os, 1 + i);
+        }
+};
+
 class CTree
 {
     public:
@@ -506,6 +564,9 @@ class CTreeNodeFactory
         static CDivOperator* createDivOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CDivOperator>(left, right); }
         static CModOperator* createModOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CModOperator>(left, right); }
         static CTimesOperator* createTimesOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CTimesOperator>(left, right); }
+        static CAndOperator* createAndOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CAndOperator>(left, right); }
+        static COrOperator* createOrOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<COrOperator>(left, right); }
+        static CNotOperator* createNotOperator(const CTreeNode* node) { CNotOperator* o = new CNotOperator(); o->add_argument(node); return o; }
 
     private:
         template <class T>

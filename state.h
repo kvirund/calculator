@@ -5,7 +5,7 @@ struct SState
 {
     int offset;
     int syntax_error;
-    void* tree;
+    void* root;
     void* vpool;
     void* temp_set;
 };
@@ -27,13 +27,14 @@ void* create_greater_or_equal_operator(void* a, void* b);
 void* create_equal_operator(void* a, void* b);
 void* create_not_equal_operator(void* a, void* b);
 void* create_add_operator(void* a, void* b);
-void* create_add_operator(void* a, void* b);
 void* create_sub_operator(void* a, void* b);
 void* create_div_operator(void* a, void* b);
 void* create_mod_operator(void* a, void* b);
 void* create_times_operator(void* a, void* b);
 void* create_minus_operator(void* n);
-void set_root(void* tree, void* root);
+void* create_and_operator(void* a, void* b);
+void* create_or_operator(void* a, void* b);
+void* create_not_operator(void* n);
 void delete_node(void* node);
 #ifdef __cplusplus
 }

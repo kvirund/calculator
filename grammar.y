@@ -21,7 +21,7 @@
 }
 %token_destructor { }
 
-expression ::= expr(ROOT) . { set_root(state->tree, ROOT); }
+expression ::= expr(ROOT) . { state->root = ROOT; }
 
 term(T) ::= IDENTIFIER(I) .
     {
@@ -98,6 +98,26 @@ expr(R) ::= MINUS expr(E) . [NOT]
     R = create_minus_operator(E);
     add_to_temp_set(R, state->temp_set);
     remove_from_temp_set(E, state->temp_set);
+}
+expr(R) ::= NOT expr(E) .
+{
+    R = create_not_operator(E);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(E, state->temp_set);
+}
+expr(R) ::= expr(A) AND expr(B) .
+{
+    R = create_and_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
+}
+expr(R) ::= expr(A) OR expr(B) .
+{
+    R = create_or_operator(A, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(A, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
 }
 expr(R) ::= expr(A) LESS expr(B) . 
 {
