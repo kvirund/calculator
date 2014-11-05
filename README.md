@@ -17,6 +17,7 @@ At this time implemented following operations:
     5. times (*)
     6. All relationship operations (<, <=, >, >=, ==, !=)
     7. Negative (-)
+    8. logical AND, OR and NOT
 
 Requirements
 ============
