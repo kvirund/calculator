@@ -656,7 +656,6 @@ bool CParser::parse(const std::string& line)
     }
 
     parser = ParseAlloc(malloc);
-    std::cout << "start parsing '" << line << "'" << std::endl;
     scanner::CToken t;
     for (t = scanner::scan(line, offset);
             ET_ERROR != t.token() && ET_EOF != t.token();
