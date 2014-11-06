@@ -44,6 +44,7 @@ RIGHT_P = ')' ;
 SPACE = [ \t]* ;
 EOL = '\n' ;
 END = "\x00" ;
+ASSIGN = '=' \ [^=] ;
 
 SPACE            { offset += cursor - p_start; return CToken(ET_SPACE, expression.substr(start, cursor - p_start)); }
 BOOLEAN          { offset += cursor - p_start; return CToken(ET_BOOLEAN, expression.substr(start, cursor - p_start)); }
@@ -73,6 +74,9 @@ IDENTIFIER       { offset += cursor - p_start; return CToken(ET_IDENTIFIER, expr
 
 LEFT_P           { offset += cursor - p_start; return CToken(ET_LEFT_P, expression.substr(start, cursor - p_start)); }
 RIGHT_P          { offset += cursor - p_start; return CToken(ET_RIGHT_P, expression.substr(start, cursor - p_start)); }
+
+ASSIGN           { offset += cursor - p_start; return CToken(ET_ASSIGN, expression.substr(start, cursor - p_start)); }
+
 END              { offset += cursor - p_start; return CToken(ET_EOF, expression.substr(start, cursor - p_start)); }
 [^]              { offset += cursor - p_start; return CToken(ET_ERROR, expression.substr(start, cursor - p_start)); }
 

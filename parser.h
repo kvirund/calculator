@@ -124,6 +124,7 @@ class CVariable
         CVariable(const std::string& name): m_name(name) {}
         CVariable(const std::string& name, const CValue& value): m_name(name), m_value(value) {}
         const CValue& value() const { return m_value; }
+        void value(const CValue& value) { m_value = value; }
         void dump(std::ostream& os) const
         {
             os << m_name << "=";
@@ -141,7 +142,8 @@ class CVariables
         CVariables() {}
         void add_variable(const std::string& name, const CValue& value);
         const CVariable& get_variable(const std::string& name) const;
-        bool is_variable_set(const std::string& name) const { return m_variables.end() != m_variables.find(name); }
+        CVariable& get_variable(const std::string& name);
+        bool is_variable_exists(const std::string& name) const { return m_variables.end() != m_variables.find(name); }
         void clear() { m_variables.clear(); }
 
     private:
@@ -195,13 +197,14 @@ class CConstantTreeNode: public CLeafTreeNode
 class CVariableTreeNode: public CLeafTreeNode
 {
     public:
-        CVariableTreeNode(const std::string& name, const CVariables* vpool): m_name(name), m_variables_pool(vpool) {}
-        CValue value() const { return m_variables_pool->get_variable(m_name).value(); }
+        CVariableTreeNode(const std::string& name, CVariables* vpool): m_name(name), m_variables_pool(vpool) {}
+        CValue value() const;
+        void value(const CValue& value);
         void dump(std::ostream& os, int i = 0) const;
 
     private:
         const std::string m_name;
-        const CVariables* m_variables_pool;
+        CVariables* m_variables_pool;
 };
 
 class COperatorTreeNode: public CTreeNode
@@ -551,7 +554,7 @@ class CTreeNodeFactory
         static CConstantTreeNode* createConstantNode(long double value) { return new CConstantTreeNode(value); }
         static CConstantTreeNode* createConstantNode(bool value) { return new CConstantTreeNode(value); }
         static CConstantTreeNode* createConstantNode(const std::string& value) { return new CConstantTreeNode(value); }
-        static CVariableTreeNode* createVariableNode(const std::string& name, const CVariables* vpool) { return new CVariableTreeNode(name, vpool); }
+        static CVariableTreeNode* createVariableNode(const std::string& name, CVariables* vpool) { return new CVariableTreeNode(name, vpool); }
         static CLessOperator* createLessOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CLessOperator>(left, right); }
         static CLessOrEqualOperator* createLessOrEqualOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CLessOrEqualOperator>(left, right); }
         static CEqualOperator* createEqualOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CEqualOperator>(left, right); }

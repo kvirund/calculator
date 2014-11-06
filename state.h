@@ -35,6 +35,7 @@ void* create_minus_operator(void* n);
 void* create_and_operator(void* a, void* b);
 void* create_or_operator(void* a, void* b);
 void* create_not_operator(void* n);
+void* evaluate(void* variable, void* expression);
 void delete_node(void* node);
 #ifdef __cplusplus
 }

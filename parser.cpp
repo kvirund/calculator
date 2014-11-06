@@ -550,6 +550,33 @@ const CVariable& CVariables::get_variable(const std::string& name) const
     return v->second;
 }
 
+CVariable& CVariables::get_variable(const std::string& name)
+{
+    variables_map_t::iterator v = m_variables.find(name);
+    if (m_variables.end() == v)
+    {
+        throw CRuntimeException(("Variable '" + name + "' is not defined").c_str());
+    }
+    return v->second;
+}
+
+CValue CVariableTreeNode::value() const
+{
+    return m_variables_pool->get_variable(m_name).value();
+}
+
+void CVariableTreeNode::value(const CValue& value)
+{
+    if (!m_variables_pool->is_variable_exists(m_name))
+    {
+        m_variables_pool->add_variable(m_name, value);
+    }
+    else
+    {
+        m_variables_pool->get_variable(m_name).value(value);
+    }
+}
+
 CValue CTree::value() const
 {
     if (!m_root)
@@ -584,7 +611,7 @@ void CTree::dump(std::ostream& os, int i) const
 void CVariableTreeNode::dump(std::ostream& os, int i) const
 {
     indent(os, i) << "CVariableTreeNode: ";
-    if (m_variables_pool->is_variable_set(m_name))
+    if (m_variables_pool->is_variable_exists(m_name))
     {
         m_variables_pool->get_variable(m_name).dump(os);
     }
@@ -635,6 +662,10 @@ bool CParser::parse(const std::string& line)
             ET_ERROR != t.token() && ET_EOF != t.token();
             t = scanner::scan(line, offset))
     {
+        if (ET_SPACE == t.token())
+        {
+            continue;
+        }
         CParserNode* node = CTreeNodeFactory::createParserNode(t.value());
         nodes.push_back(node);
         Parse(parser, t.token(), node, &state);

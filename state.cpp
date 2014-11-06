@@ -24,7 +24,7 @@ void* create_identifier(void* n, void* vp)
 {
     parser::CParserNode* node = static_cast<parser::CParserNode*>(n);
     const std::string name = node->as_string();
-    const parser::CVariables* vpool = static_cast<parser::CVariables*>(vp);
+    parser::CVariables* vpool = static_cast<parser::CVariables*>(vp);
     parser::CVariableTreeNode* new_node = parser_factory::createVariableNode(name, vpool);
     return new_node;
 }
@@ -173,6 +173,14 @@ void* create_not_operator(void* n)
     parser::CTreeNode* node = static_cast<parser::CTreeNode*>(n);
     parser::CTreeNode* new_node = parser_factory::createNotOperator(node);
     return new_node;
+}
+
+void* evaluate(void* v, void* e)
+{
+    parser::CVariableTreeNode* variable = static_cast<parser::CVariableTreeNode*>(v);
+    parser::CTreeNode* expr = static_cast<parser::CTreeNode*>(e);
+    variable->value(expr->value());
+    return variable;
 }
 
 void delete_node(void* node)

@@ -1,3 +1,4 @@
+%right ASSIGN .
 %left AND .
 %left OR .
 %left LESS LESS_OR_EQUAL GREATER GREATER_OR_EQUAL EQUAL NOT_EQUAL .
@@ -23,11 +24,12 @@
 
 expression ::= expr(ROOT) . { state->root = ROOT; }
 
-term(T) ::= IDENTIFIER(I) .
+identifier(V) ::= IDENTIFIER(I) .
     {
-        T = create_identifier(I, state->vpool);
-        add_to_temp_set(T, state->temp_set);
+        V = create_identifier(I, state->vpool);
+        add_to_temp_set(V, state->temp_set);
     }
+
 term(T) ::= INTEGER(I) .
     {
         T = create_integer(I);
@@ -48,7 +50,18 @@ term(T) ::= STRING(S) .
         T = create_string(S);
         add_to_temp_set(T, state->temp_set);
     }
+term(T) ::= identifier(I) . { T = I; }
 
+variable(V) ::= identifier(I) ASSIGN expr(E) .
+    {
+        V = evaluate(I, E); // V will be point to I
+
+        // evaluated expression should be destroyed
+        remove_from_temp_set(E, state->temp_set);
+        delete_node(E);
+    }
+
+expr(E) ::= variable(V) . { E = V; }
 expr(E) ::= term(T) . { E = T; }
 
 expr(R) ::= SPACE expr(E) . { R = E; }

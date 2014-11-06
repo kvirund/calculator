@@ -7,12 +7,6 @@
 int main(int argc, char **argv)
 {
     parser::CParser parser;
-    parser.add_variable("i", 123ll);
-    parser.add_variable("n", 3ll);
-    parser.add_variable("f", 123.456l);
-    parser.add_variable("bt", true);
-    parser.add_variable("bf", false);
-    parser.add_variable("s", std::string("hello world!!!"));
 
     do
     {
