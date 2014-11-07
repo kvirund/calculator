@@ -20,7 +20,7 @@ At this time implemented following operations:
 6. All relationship operations (<, <=, >, >=, ==, !=)
 7. Negative (-)
 8. logical AND, OR and NOT
-9. Assignment (<variable name>=<variable value>)
+9. Assignment ([variable name]=[variable value])
 
 Requirements
 ============
