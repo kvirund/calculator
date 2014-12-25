@@ -48,8 +48,8 @@ ASSIGN = '=' \ [^=] ;
 
 SPACE            { offset += cursor - p_start; return CToken(ET_SPACE, expression.substr(start, cursor - p_start)); }
 BOOLEAN          { offset += cursor - p_start; return CToken(ET_BOOLEAN, expression.substr(start, cursor - p_start)); }
-FLOAT            { offset += cursor - p_start; return CToken(ET_FLOAT, expression.substr(start, cursor - p_start)); }
 INTEGER          { offset += cursor - p_start; return CToken(ET_INTEGER, expression.substr(start, cursor - p_start)); }
+FLOAT            { offset += cursor - p_start; return CToken(ET_FLOAT, expression.substr(start, cursor - p_start)); }
 STRING           { offset += cursor - p_start; return CToken(ET_STRING, expression.substr(1 + start, cursor - p_start - 2)); }
 
 LESS             { offset += cursor - p_start; return CToken(ET_LESS, expression.substr(start, cursor - p_start)); }
