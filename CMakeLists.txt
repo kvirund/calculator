@@ -7,13 +7,13 @@ add_definitions(-DUSE_COLORS)
 add_executable(expr main.cpp scanner.cpp parser.cpp grammar.c state.cpp)
 
 find_library(READLINE readline)
-if (READLINE-NOTFOUND)
+if (${READLINE} STREQUAL "READLINE-NOTFOUND")
     message(STATUS "Readline not found")
-else (READLINE-NOTFOUND)
+else (${READLINE} STREQUAL "READLINE-NOTFOUND")
     message(STATUS "Readline found")
     add_definitions(-DUSE_READLINE)
     target_link_libraries(expr ${READLINE})
-endif (READLINE-NOTFOUND)
+endif (${READLINE} STREQUAL "READLINE-NOTFOUND")
 
 add_custom_command(OUTPUT ${CMAKE_HOME_DIRECTORY}/scanner.cpp
     COMMAND re2c -o scanner.cpp scanner.re
