@@ -1038,10 +1038,13 @@ static void yy_reduce(
       case 25: /* expr ::= identifier ASSIGN expr */
 #line 202 "/home/veei/src/calculator/expressions.grammar.y"
 {
-    yygotominor.yy0 = yymsp[0].minor.yy0; // fake assignment. Just pass through right part
+    yygotominor.yy0 = create_assignment_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
+    add_to_temp_set(yygotominor.yy0, state->temp_set);
+    remove_from_temp_set(yymsp[-2].minor.yy0, state->temp_set);
+    remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
-#line 1045 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1048 "/home/veei/src/calculator/expressions.grammar.cpp"
         break;
       default:
         break;
@@ -1091,7 +1094,7 @@ static void yy_parse_failed(
 #line 17 "/home/veei/src/calculator/expressions.grammar.y"
 
     state->syntax_error = 1;
-#line 1095 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1098 "/home/veei/src/calculator/expressions.grammar.cpp"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 #endif /* YYNOERRORRECOVERY */
@@ -1111,7 +1114,7 @@ static void yy_syntax_error(
     UNUSED_ARG(yymajor);
     UNUSED_ARG(yyminor);
     state->syntax_error = 1;
-#line 1115 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1118 "/home/veei/src/calculator/expressions.grammar.cpp"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1309,4 +1312,4 @@ void Parse(
 }
 #line 31 "/home/veei/src/calculator/expressions.grammar.y"
 }}
-#line 1313 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1316 "/home/veei/src/calculator/expressions.grammar.cpp"

@@ -295,7 +295,7 @@ class CConstantTreeNode: public CLeafTreeNode
         CValue m_value;
 };
 
-class CObjectTreeNode: public CLeafTreeNode
+class CObjectTreeNode: public CTreeNode
 {
     protected:
         CObjectTreeNode() {}
@@ -707,6 +707,27 @@ class CIsOperator: public CBinaryOperator
         }
 };
 
+class CAssignmentOperator: public CTreeNode
+{
+    public:
+        CAssignmentOperator(CObjectTreeNode* var, const CTreeNode* expr): m_variable(var), m_expression(expr) {}
+        CValue value() const
+        {
+            CValue value = m_expression->value();
+            m_variable->get(true).value(value);
+            return value;
+        }
+        void dump(std::ostream& os, int i = 0) const
+        {
+            indent(os, i) << "CAssignmentOperator: " << std::endl;
+            m_variable->dump(os, 1 + i);
+            m_variable->dump(os, 1 + i);
+        }
+    private:
+        CObjectTreeNode* m_variable;
+        const CTreeNode* m_expression;
+};
+
 class CTree
 {
     public:
@@ -762,6 +783,7 @@ class CTreeNodeFactory
         static CIsOperator* createIsOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CIsOperator>(left, right); }
         static CAccessOperator* createAccessOperator(CObjectTreeNode* object, const std::string& field) { return new CAccessOperator(object, field); }
         static CNotOperator* createNotOperator(const CTreeNode* node) { CNotOperator* o = new CNotOperator(); o->add_argument(node); return o; }
+        static CAssignmentOperator* createAssignmentOperator(CObjectTreeNode* object, const CTreeNode* expr) { return new CAssignmentOperator(object, expr); }
 
     private:
         template <class T>

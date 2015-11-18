@@ -1,0 +1,268 @@
+#
+# Test cases for Expressions parser
+#
+
+(Expressions parser) Escape string: <expr.escape> 7 6 <>
+.expr
+'\''
+'\\'
+'"'
+"'"
+"\""
+"\\"
+"'"
+"\"
+"""
+"'"
+"""
+"\"
+
+# 
+# Note: be careful with platform dependent numbers.
+# For example, number:
+# 12E-100
+# ... on Windows is:
+# 1.2e-099
+# ... but on Linux is:
+# 1.2e-99
+# So, the same numbers, but different representation. I think it depends of implementation of STD library.
+#
+(Expressions parser) Constants test: <expr.const> 14 13 <expr.escape>
+.expr
+0
+1
+0.25
+123.456
+12e100
+12E-101
+'qwer'
+"qwer"
+true
+FALSE
+tRuE
+-0
+-0.0
+0
+1
+0.25
+123.456
+1.2e+101
+1.2e-100
+"qwer"
+"qwer"
+true
+false
+true
+0
+-0
+
+(Expressions parser) Unary minus and NOT: <expr.unary> 7 6 <expr.const>
+.expr
+-1
+-1+1
+---1
+1+---1*-1
+not true
+not false and false
+-1
+0
+-1
+2
+false
+false
+
+# 
+# Note: be careful with platform dependent numbers.
+# For example, result of:
+# 1.1111111111111111+2.2222222222222222
+# ... on Windows is:
+# 3.333333333333334
+# ... but on Linux is:
+# 3.333333333333333
+# Almost the same but not enough. I think it is depends of implementation of STD library.
+#
+(Expressions parser) Sum test: <expr.sum> 9 8 <expr.const>
+.expr
+2+2
+0 + 0
+1.0+ 2.0
+-1 +1
+1-1
+'asdf'+'zxcv'+"???"+"_"
+1.1111111111111111+2.2222222222222222-3.3333333333333333
+1.111111111111111+2.222222222222222
+4
+0
+3
+0
+0
+"asdfzxcv???_"
+0
+3.333333333333333
+
+(Expressions parser) Mul test: <expr.mul> 8 7 <expr.sum,expr.const>
+.expr
+1*0
+0*1
+1*1
+-1*-1
+2*2
+1+1*2
+123.456*(-0.1)
+0
+0
+1
+1
+4
+3
+-12.3456
+
+(Expressions parser) Compare test: <expr.compare> 13 12 <expr.const>
+.expr
+0==0
+0==-0
+1==1.0
+'qwer'=="qwer"
+0<1
+1>-1
+5<=5
+5>=5
+4<=6
+4>=6
+5!=5
+5!=-5
+true
+true
+true
+true
+true
+true
+true
+true
+true
+false
+false
+true
+
+# 
+# Note: Expressions grammar does not support cascade variables
+#
+(Expressions parser) Variable test: <expr.vars> 17 16 <expr.const,expr.compare>
+.expr
+.set PI = 3.141592653589793
+PI
+.set a=100500
+.set b=123.456
+.set c='qwer'+"zxcv"
+.set d=a+b
+.set e=c == "qwerzxcv"
+a
+b
+c
+d
+e
+f=100500
+f.g=501
+1+f.e=f+f.g
+f.e
+OK
+3.141592653589793
+OK
+OK
+OK
+OK
+OK
+100500
+123.456
+"qwerzxcv"
+100623.456
+true
+100500
+501
+101002
+101001
+
+(Expressions parser) Fake assignment test: <expr.fake_assignment> 6 5 <expr.vars>
+.expr
+.set DataSize=5
+.set SrcMinCharsetSize=4
+DestinationDataSize=(DataSize+SrcMinCharsetSize-1)/SrcMinCharsetSize
+1 + DestinationDataSize=(DataSize+SrcMinCharsetSize-1)/SrcMinCharsetSize
+1 + (DestinationDataSize=(DataSize+SrcMinCharsetSize-1)/SrcMinCharsetSize)
+OK
+OK
+2
+3
+3
+
+(Expressions parser) Booleans test: <expr.bool> 21 20 <expr.const,expr.compare,expr.unary>
+.expr
+not (true or true)
+not (true or false)
+not (false or true)
+not (false or false)
+not (true and true)
+not (true and false)
+not (false and true)
+not (false and false)
+true or true
+true or false
+false or true
+false or false
+true and true
+true and false
+false and true
+false and false
+(True and not falsE) or (not True and falsE)
+(tRue and not trUe) or (not tRue and truE)
+(faLse and not falSe) or (not faLse and falSe)
+(falSe and not tRue) or (not falSe and tRue)
+false
+false
+false
+true
+false
+true
+true
+true
+true
+true
+true
+false
+true
+false
+false
+false
+true
+false
+false
+true
+
+(Expressions parser) Div test: <expr.div> 13 12 <expr.const,expr.mul,expr.sum>
+.expr
+1/1
+1/2
+1.0/2
+1/2.0
+0/1
+0.0/1
+0/1.0
+2*6/3
+12/3/4
+12/3*4
+-1/-1
+0/-1
+1
+0
+0.5
+0.5
+0
+0
+0
+4
+1
+16
+1
+0
+
+# vim: ts=4 sw=4 tw=0 et syntax=plain :

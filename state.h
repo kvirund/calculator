@@ -57,6 +57,7 @@ void* create_access_operator(void* a, void* b);
 void* create_like_operator(void* a, void* b);
 void* create_is_operator(void* a, void* b);
 void* create_not_operator(void* n);
+void* create_assignment_operator(void* a, void* b);
 void delete_node(void* node);
 }
 

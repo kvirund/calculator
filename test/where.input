@@ -1,0 +1,316 @@
+# 
+# Test cases for WHERE parser
+#
+
+(WHERE parser) Escape string: <where.escape> 3 2 <>
+.where
+'\''
+'\\'
+"'"
+"\"
+
+# 
+# Note: be careful with platform dependent numbers.
+# For example, number:
+# 12E-100
+# ... on Windows is:
+# 1.2e-099
+# ... but on Linux is:
+# 1.2e-99
+# So, the same numbers, but different representation. I think it depends of implementation of STD library.
+#
+(WHERE parser) Constants test: <where.const> 13 12 <where.escape>
+.where
+0
+1
+0.25
+123.456
+12e100
+12E-101
+'qwer'
+true
+FALSE
+tRuE
+-0
+-0.0
+0
+1
+0.25
+123.456
+1.2e+101
+1.2e-100
+"qwer"
+true
+false
+true
+0
+-0
+
+(WHERE parser) Unary minus and NOT: <where.unary> 7 6 <where.const>
+.where
+-1
+-1+1
+---1
+1+---1*-1
+not true
+not false and false
+-1
+0
+-1
+2
+false
+false
+
+# 
+# Note: be careful with platform dependent numbers.
+# For example, result of:
+# 1.1111111111111111+2.2222222222222222
+# ... on Windows is:
+# 3.333333333333334
+# ... but on Linux is:
+# 3.333333333333333
+# Almost the same but not enough. I think it is depends of implementation of STD library.
+#
+(WHERE parser) Sum test: <where.sum> 9 8 <where.const>
+.where
+2+2
+0 + 0
+1.0+ 2.0
+-1 +1
+1-1
+'asdf'+'zxcv'
+1.1111111111111111+2.2222222222222222-3.3333333333333333
+1.111111111111111+2.222222222222222
+4
+0
+3
+0
+0
+"asdfzxcv"
+0
+3.333333333333333
+
+(WHERE parser) Mul test: <where.mul> 8 7 <where.sum,where.const>
+.where
+1*0
+0*1
+1*1
+-1*-1
+2*2
+1+1*2
+123.456*(-0.1)
+0
+0
+1
+1
+4
+3
+-12.3456
+
+(WHERE parser) Compare test: <where.compare> 13 12 <where.const>
+.where
+0==0
+0==-0
+1==1.0
+'qwer'=='qwer'
+0<1
+1>-1
+5<=5
+5>=5
+4<=6
+4>=6
+5!=5
+5!=-5
+true
+true
+true
+true
+true
+true
+true
+true
+true
+false
+false
+true
+
+# 
+# Note: for WHERE parser UNDO/REDO part must be defined using capital letters.
+#
+(WHERE parser) Variable test: <where.vars> 18 17 <where.const,where.null,where.like,where.compare>
+.where
+.set a.UNDO = 123
+.set a.REDO = 'asdf'
+.set B.UNDO = 123.456
+.set C.UNDO = false
+.set n.REDO = NULL
+.set PI = 3.141592653589793
+"a".undo
+"a"
+"a".REDO
+pi
+PI
+b.unDO
+"C".unDO
+"C".undo and"a".undo==123
+"n".redo
+"a".redo like '%s_f'
+"n".redo is null
+OK
+OK
+OK
+OK
+OK
+OK
+123
+<Undefined value>
+"asdf"
+3.141592653589793
+3.141592653589793
+123.456
+false
+false
+NULL
+true
+true
+
+(WHERE parser) Booleans test: <where.bool> 22 21 <where.const,where.compare,where.like,where.unary>
+.where
+not (true or true)
+not (true or false)
+not (false or true)
+not (false or false)
+not (true and true)
+not (true and false)
+not (false and true)
+not (false and false)
+true or true
+true or false
+false or true
+false or false
+true and true
+true and false
+false and true
+false and false
+(True and not falsE) or (not True and falsE)
+(tRue and not trUe) or (not tRue and truE)
+(faLse and not falSe) or (not faLse and falSe)
+(falSe and not tRue) or (not falSe and tRue)
+1==1 and not('a'like'%')
+false
+false
+false
+true
+false
+true
+true
+true
+true
+true
+true
+false
+true
+false
+false
+false
+true
+false
+false
+true
+false
+
+(WHERE parser) Div test: <where.div> 13 12 <where.const,where.mul,where.sum>
+.where
+1/1
+1/2
+1.0/2
+1/2.0
+0/1
+0.0/1
+0/1.0
+2*6/3
+12/3/4
+12/3*4
+-1/-1
+0/-1
+1
+0
+0.5
+0.5
+0
+0
+0
+4
+1
+16
+1
+0
+
+(WHERE parser) Null test: <where.null> 7 6 <where.bool,where.const,where.mul,where.div>
+.where
+null
+NULL
+1 + null
+1 * null
+1/null
+'asdf'+null
+NULL
+NULL
+NULL
+NULL
+NULL
+NULL
+
+(WHERE parser) IS and IS NOT test: <where.is> 10 9 <where.null>
+.where
+null is null
+null is not null
+1*null is null
+1+3 is not null
+1 is 1
+'qwer' is not 'asdf'
+'qwer' is 'qwer'
+null is null and not null is null
+null is null and not (null is not null)
+true
+false
+true
+true
+true
+true
+true
+true
+true
+
+(WHERE parser) LIKE operator: <where.like> 15 14 <where.const>
+.where
+'asdf' like 'asdf'
+'sadf' like 'qwer'
+'asdf' like '%'
+'asdf' like '%f'
+'asdf' like '%v'
+'sadf' like '____'
+'sadf' like '___'
+'sadf' like '___f'
+'sadf' like '___v'
+'abababababababababa' like '%ab%ab%__%'
+'asfd'like'%s__'
+'asdf' like '%%asdf%%'
+'asdf' like 'b%%%%%%%%'
+'asdf' like 'a%%%%%%%%f'
+true
+false
+true
+true
+false
+true
+false
+true
+false
+true
+true
+true
+false
+true
+
+# vim: ts=4 sw=4 tw=0 et syntax=plain :

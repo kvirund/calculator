@@ -209,5 +209,13 @@ void delete_node(void* node)
 {
     delete static_cast<parser::CTreeNode*>(node);
 }
+
+void* create_assignment_operator(void* a, void* b)
+{
+    parser::CObjectTreeNode* var = static_cast<parser::CObjectTreeNode*>(a);
+    parser::CTreeNode* expr = static_cast<parser::CTreeNode*>(b);
+    return parser_factory::createAssignmentOperator(var, expr);
+}
+
 }
 /* vim: set ts=4 sw=4 tw=0 et syntax=cpp :*/

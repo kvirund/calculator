@@ -198,7 +198,10 @@ expr(R) ::= expr(A) NOT_EQUAL expr(B) .
     remove_from_temp_set(B, state->temp_set);
 }
 
-expr(R) ::= identifier ASSIGN expr(B) .
+expr(R) ::= identifier(I) ASSIGN expr(B) .
 {
-    R = B; // fake assignment. Just pass through right part
+    R = create_assignment_operator(I, B);
+    add_to_temp_set(R, state->temp_set);
+    remove_from_temp_set(I, state->temp_set);
+    remove_from_temp_set(B, state->temp_set);
 }
