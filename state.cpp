@@ -4,7 +4,7 @@
 
 typedef parser::CTreeNodeFactory parser_factory;
 
-extern "C"
+namespace grammar 
 {
 void add_to_temp_set(void *n, void* ts)
 {
@@ -24,8 +24,8 @@ void* create_identifier(void* n, void* vp)
 {
     parser::CParserNode* node = static_cast<parser::CParserNode*>(n);
     const std::string name = node->as_string();
-    parser::CVariables* vpool = static_cast<parser::CVariables*>(vp);
-    parser::CVariableTreeNode* new_node = parser_factory::createVariableNode(name, vpool);
+    parser::CVariable* vpool = static_cast<parser::CVariable*>(vp);
+    parser::CVariableTreeNode* new_node = parser_factory::createVariableNode(name, *vpool);
     return new_node;
 }
 
@@ -39,7 +39,7 @@ void* create_integer(void* n)
 void* create_float(void* n)
 {
     parser::CParserNode* node = static_cast<parser::CParserNode*>(n);
-    parser::CConstantTreeNode* new_node = parser_factory::createConstantNode(static_cast<long double>(node->as_float()));
+    parser::CConstantTreeNode* new_node = parser_factory::createConstantNode(static_cast<long double>(node->as_double()));
     return new_node;
 }
 
@@ -55,6 +55,11 @@ void* create_string(void* n)
     parser::CParserNode* node = static_cast<parser::CParserNode*>(n);
     parser::CConstantTreeNode* new_node = parser_factory::createConstantNode(node->as_string());
     return new_node;
+}
+
+void* create_null()
+{
+    return parser_factory::createConstantNode(static_cast<void*>(NULL));
 }
 
 void* create_less_operator(void* a, void* b)
@@ -168,6 +173,31 @@ void* create_or_operator(void* a, void* b)
     return new_node;
 }
 
+void* create_access_operator(void* a, void* b)
+{
+    parser::CObjectTreeNode* node_a = static_cast<parser::CObjectTreeNode*>(a);
+    parser::CParserNode* node = static_cast<parser::CParserNode*>(b);
+    const std::string name = node->value().get_string();
+    parser::CTreeNode* new_node = parser_factory::createAccessOperator(node_a, name);
+    return new_node;
+}
+
+void* create_like_operator(void* a, void* b)
+{
+    parser::CTreeNode* node_a = static_cast<parser::CTreeNode*>(a);
+    parser::CTreeNode* node_b = static_cast<parser::CTreeNode*>(b);
+    parser::CTreeNode* new_node = parser_factory::createLikeOperator(node_a, node_b);
+    return new_node;
+}
+
+void* create_is_operator(void* a, void* b)
+{
+    parser::CTreeNode* node_a = static_cast<parser::CTreeNode*>(a);
+    parser::CTreeNode* node_b = static_cast<parser::CTreeNode*>(b);
+    parser::CTreeNode* new_node = parser_factory::createIsOperator(node_a, node_b);
+    return new_node;
+}
+
 void* create_not_operator(void* n)
 {
     parser::CTreeNode* node = static_cast<parser::CTreeNode*>(n);
@@ -175,16 +205,9 @@ void* create_not_operator(void* n)
     return new_node;
 }
 
-void* evaluate(void* v, void* e)
-{
-    parser::CVariableTreeNode* variable = static_cast<parser::CVariableTreeNode*>(v);
-    parser::CTreeNode* expr = static_cast<parser::CTreeNode*>(e);
-    variable->value(expr->value());
-    return variable;
-}
-
 void delete_node(void* node)
 {
     delete static_cast<parser::CTreeNode*>(node);
 }
 }
+/* vim: set ts=4 sw=4 tw=0 et syntax=cpp :*/

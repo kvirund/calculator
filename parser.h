@@ -1,22 +1,58 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
-#include <strings.h>
+#include "expressions.scanner.h"
+#include "where.scanner.h"
+#include "parser_utils.h"
 
+#include <string.h>
+
+#include <sstream>
 #include <cstdlib>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <list>
 #include <map>
 #include <set>
 
+namespace scanner
+{
+    namespace expressions
+    {
+        class CToken;
+    }
+    namespace where
+    {
+        class CToken;
+    }
+}
+
+namespace grammar
+{
+    struct SState;
+
+    namespace expressions
+    {
+        void *ParseAlloc(void *(*mallocProc)(size_t));
+        void Parse( void *yyp, int yymajor, void* yyminor, SState*);
+        void ParseFree( void *p, void (*freeProc)(void*));
+    }
+    namespace where
+    {
+        void *ParseAlloc(void *(*mallocProc)(size_t));
+        void Parse( void *yyp, int yymajor, void* yyminor, SState*);
+        void ParseFree( void *p, void (*freeProc)(void*));
+    }
+}
+
 namespace parser
 {
-inline std::ostream& indent(std::ostream& os, int l)
+inline std::ostream& indent(std::ostream& os, int l, const char* ind = "\t")
 {
     while (0 < l)
     {
-        os << "\t";
+        os << ind;
         l--;
     }
     return os;
@@ -26,10 +62,11 @@ class CCommonException: public std::exception
 {
     public:
         CCommonException(const char* message): m_what(message) {}
-        const char* what() const throw() { return m_what; }
+        const char* what() const throw() { return m_what.c_str(); }
+        ~CCommonException() throw() {}
 
     private:
-        const char* m_what;
+        const std::string m_what;
 };
 
 class CParserException: public CCommonException
@@ -51,11 +88,13 @@ enum EParserState
     EPS_READY
 };
 
-#define TYPES   TOKEN(ETYPE_UNDEFINED) \
+#define TYPES \
+    TOKEN(ETYPE_UNDEFINED) \
     TOKEN(ETYPE_INTEGER) \
     TOKEN(ETYPE_FLOAT) \
     TOKEN(ETYPE_BOOLEAN) \
-    TOKEN(ETYPE_STRING)
+    TOKEN(ETYPE_STRING) \
+    TOKEN(ETYPE_NULL)
 
 class CValue
 {
@@ -72,6 +111,7 @@ class CValue
         CValue(long double value): m_type(ETYPE_FLOAT) { m_value.f = value; }
         CValue(bool value): m_type(ETYPE_BOOLEAN) { m_value.b = value; }
         CValue(const std::string& value): m_type(ETYPE_STRING), m_string(value) { m_value.s = m_string.c_str(); }
+        CValue(const void*): m_type(ETYPE_NULL) { }
         CValue& operator=(const CValue& right);
         CValue(const CValue& from);
 
@@ -79,11 +119,15 @@ class CValue
         long long int get_integer() const;
         long double get_float() const;
         bool get_boolean() const;
+        bool is_null() const { return ETYPE_NULL == m_type; }
+        bool is_defined() const { return ETYPE_UNDEFINED != m_type; }
         const std::string& get_string() const;
         CValue cast_to(EType type) const;
         void dump(std::ostream& os) const;
 
-        static EType top_type(EType a, EType b);
+        static EType top_type(EType a, EType b) { return top_type(a, b, true); };
+        static EType top_type(EType a, EType b, const bool throw_exception);
+        CValue equal_to(const CValue& right, const bool throw_exception) const;
 
     private:
         union UValue
@@ -124,33 +168,82 @@ class CVariable
         CVariable(const std::string& name): m_name(name) {}
         CVariable(const std::string& name, const CValue& value): m_name(name), m_value(value) {}
         const CValue& value() const { return m_value; }
+        const std::string& name() const { return m_name; }
         void value(const CValue& value) { m_value = value; }
-        void dump(std::ostream& os) const
-        {
-            os << m_name << "=";
-            m_value.dump(os);
-        }
+        void add_field(const std::string& name, const CValue& value) { m_fields[name] = CVariable(name, value); }
+        void add_field(const std::string& name, const CVariable& value) { m_fields[name] = value; }
+        CVariable& add_field(const std::string& name) { return m_fields[name]; }
+        bool has_field(const std::string& name) const { return m_fields.end() != m_fields.find(name); }
+        const CVariable& get_field(const std::string& name) const;
+        CVariable& get_field(const std::string& name, const bool create);
+        void clear() { m_fields.clear(); }
+        void dump(std::ostream& os) const;
 
     private:
+        typedef std::map<std::string, CVariable> fields_t;
+
         std::string m_name;
         CValue m_value;
+        fields_t m_fields;
 };
 
-class CVariables
+inline
+const CVariable& CVariable::get_field(const std::string& name) const
 {
-    public:
-        CVariables() {}
-        void add_variable(const std::string& name, const CValue& value);
-        const CVariable& get_variable(const std::string& name) const;
-        CVariable& get_variable(const std::string& name);
-        bool is_variable_exists(const std::string& name) const { return m_variables.end() != m_variables.find(name); }
-        void clear() { m_variables.clear(); }
+    if (!has_field(name))
+    {
+        std::stringstream ss;
+        ss << "Field '" << name << "' does not exist in variable '" << this->name() << "'";
+        throw CRuntimeException(ss.str().c_str());
+    }
+    fields_t::const_iterator i = m_fields.find(name);
+    return i->second;
+}
 
-    private:
-        typedef std::map<std::string, CVariable> variables_map_t;
+inline
+CVariable& CVariable::get_field(const std::string& name, const bool create)
+{
+    if (!has_field(name))
+    {
+        if (!create)
+        {
+        std::stringstream ss;
+        ss << "Field '" << name << "' does not exist in variable '" << this->name() << "'";
+        throw CRuntimeException(ss.str().c_str());
+        }
+        else
+        {
+            add_field(name, CVariable(name));
+        }
+    }
+    return m_fields[name];
+}
 
-        variables_map_t m_variables;
-};
+inline
+void CVariable::dump(std::ostream& os) const
+{
+    os << m_name << "=";
+    m_value.dump(os);
+    os << " fields: ";
+    if (m_fields.empty())
+    {
+        os << "<no fields>";
+    }
+    else
+    {
+        os << "(";
+        for (fields_t::const_iterator i = m_fields.begin(); i != m_fields.end(); ++i)
+        {
+            if (m_fields.begin() != i)
+            {
+                os << ", ";
+            }
+            os << i->first << ": ";
+            i->second.dump(os);
+        }
+        os << ")";
+    }
+}
 
 class CTreeNode
 {
@@ -161,14 +254,21 @@ class CTreeNode
         virtual ~CTreeNode() {};
 };
 
+inline std::string to_lower(const std::string& s)
+{
+    std::string var = s;
+    std::transform(var.begin(), var.end(), var.begin(), ::tolower);
+    return var;
+}
+
 class CParserNode: public CTreeNode
 {
     public:
         CParserNode(const std::string& value): m_value(value) {}
         CValue value() const { return m_value; }
         long long int as_integer() const { return atoi(m_value.get_string().c_str()); }
-        float as_float() const { return atof(m_value.get_string().c_str()); }
-        bool as_boolean() const { return 0 == strcasecmp("true", m_value.get_string().c_str()); }
+        long double as_double() const { return static_cast<long double>( atof(m_value.get_string().c_str()) ); }
+        bool as_boolean() const { return to_lower(m_value.get_string()) == "true"; }
         const std::string& as_string() const { return m_value.get_string(); }
         void dump(std::ostream& os, int i = 0) const { indent(os, i) << "CParserNode: "; m_value.dump(os); os << std::endl; }
 
@@ -187,6 +287,7 @@ class CConstantTreeNode: public CLeafTreeNode
         explicit CConstantTreeNode(long double value): m_value(value) {}
         explicit CConstantTreeNode(bool value): m_value(value) {}
         explicit CConstantTreeNode(const std::string& value): m_value(value) {}
+        explicit CConstantTreeNode(const void* null): m_value(null) {}
         CValue value() const { return m_value; }
         void dump(std::ostream& os, int i = 0) const { indent(os, i) << "CConstantTreeNode: "; m_value.dump(os); os << std::endl; }
 
@@ -194,17 +295,45 @@ class CConstantTreeNode: public CLeafTreeNode
         CValue m_value;
 };
 
-class CVariableTreeNode: public CLeafTreeNode
+class CObjectTreeNode: public CLeafTreeNode
+{
+    protected:
+        CObjectTreeNode() {}
+
+    public:
+        virtual void dump(std::ostream& os, int i = 0) const = 0;
+        virtual const CVariable& get() const = 0;
+        virtual CVariable& get(const bool create) = 0;
+};
+
+class CVariableTreeNode: public CObjectTreeNode
 {
     public:
-        CVariableTreeNode(const std::string& name, CVariables* vpool): m_name(name), m_variables_pool(vpool) {}
+        CVariableTreeNode(const std::string& name, CVariable& owner): m_name(name), m_owner(owner) {}
         CValue value() const;
-        void value(const CValue& value);
+        const CVariable& get() const { return m_owner.get_field(m_name); }
+        CVariable& get(const bool create) { return m_owner.get_field(m_name, create); }
         void dump(std::ostream& os, int i = 0) const;
+        const std::string& name() const { return m_name; }
 
     private:
         const std::string m_name;
-        CVariables* m_variables_pool;
+        CVariable& m_owner;
+};
+
+class CAccessOperator: public CObjectTreeNode
+{
+    public:
+        CAccessOperator(CObjectTreeNode* object, const std::string& field): m_name(field), m_object(object) {}
+        CValue value() const { return m_object->get().get_field(m_name).value(); }
+        void dump(std::ostream& os, int i = 0) const;
+        const CVariable& get() const { return m_object->get().get_field(m_name); }
+        CVariable& get(const bool create) { return m_object->get(create).get_field(m_name, create); }
+        ~CAccessOperator() { delete m_object; }
+
+    private:
+        const std::string m_name;
+        CObjectTreeNode* m_object;
 };
 
 class COperatorTreeNode: public CTreeNode
@@ -518,6 +647,66 @@ class COrOperator: public CBinaryOperator
         }
 };
 
+class CLikeOperator: public CBinaryOperator
+{
+    private:
+        static bool like(const std::string& s, const std::string& p);
+
+    public:
+        CValue value() const
+        {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
+            const CValue& str = m_arguments.front()->value();
+            const CValue& pattern = m_arguments.back()->value();
+
+            if (str.is_null() || pattern.is_null())
+            {
+                return CValue(static_cast<void*>(NULL));
+            }
+
+            return CValue(static_cast<bool>(like(str.cast_to(CValue::ETYPE_STRING).get_string(),
+                            pattern.cast_to(CValue::ETYPE_STRING).get_string())));
+        }
+        void dump(std::ostream& os, int i = 0) const
+        {
+            indent(os, i) << "CLikeOperator: " << m_arguments.size() << " operands" << std::endl;
+            COperatorTreeNode::dump(os, 1 + i);
+        }
+};
+
+class CIsOperator: public CBinaryOperator
+{
+    public:
+        CValue value() const
+        {
+            if (2 != m_arguments.size())
+            {
+                throw CRuntimeException("Not enough arguments");
+            }
+            const CValue& left = m_arguments.front()->value();
+            const CValue& right = m_arguments.back()->value();
+
+            if (left.is_null() && right.is_null())
+            {
+                return CValue(static_cast<bool>(true));
+            }
+            CValue result = left.equal_to(right, false);
+            if (result.is_defined())
+            {
+                return result;
+            }
+            return CValue(static_cast<bool>(false));
+        }
+        void dump(std::ostream& os, int i = 0) const
+        {
+            indent(os, i) << "CIsOperator: " << m_arguments.size() << " operands" << std::endl;
+            COperatorTreeNode::dump(os, 1 + i);
+        }
+};
+
 class CTree
 {
     public:
@@ -540,8 +729,7 @@ class CTree
 
     private:
         CTree(const CTree&);
-        CTree& operator=(const CTree&);
-        const CTree& operator=(const CTree&) const;
+        CTree& operator=(const CTree&);  // Disable assignment operator.
 
         CTreeNode* m_root;
 };
@@ -554,7 +742,8 @@ class CTreeNodeFactory
         static CConstantTreeNode* createConstantNode(long double value) { return new CConstantTreeNode(value); }
         static CConstantTreeNode* createConstantNode(bool value) { return new CConstantTreeNode(value); }
         static CConstantTreeNode* createConstantNode(const std::string& value) { return new CConstantTreeNode(value); }
-        static CVariableTreeNode* createVariableNode(const std::string& name, CVariables* vpool) { return new CVariableTreeNode(name, vpool); }
+        static CConstantTreeNode* createConstantNode(const void* null) { return new CConstantTreeNode(null); }
+        static CVariableTreeNode* createVariableNode(const std::string& name, CVariable& owner) { return new CVariableTreeNode(name, owner); }
         static CLessOperator* createLessOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CLessOperator>(left, right); }
         static CLessOrEqualOperator* createLessOrEqualOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CLessOrEqualOperator>(left, right); }
         static CEqualOperator* createEqualOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CEqualOperator>(left, right); }
@@ -569,6 +758,9 @@ class CTreeNodeFactory
         static CTimesOperator* createTimesOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CTimesOperator>(left, right); }
         static CAndOperator* createAndOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CAndOperator>(left, right); }
         static COrOperator* createOrOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<COrOperator>(left, right); }
+        static CLikeOperator* createLikeOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CLikeOperator>(left, right); }
+        static CIsOperator* createIsOperator(const CTreeNode* left, const CTreeNode* right) { return createBinaryOperator<CIsOperator>(left, right); }
+        static CAccessOperator* createAccessOperator(CObjectTreeNode* object, const std::string& field) { return new CAccessOperator(object, field); }
         static CNotOperator* createNotOperator(const CTreeNode* node) { CNotOperator* o = new CNotOperator(); o->add_argument(node); return o; }
 
     private:
@@ -582,15 +774,64 @@ class CTreeNodeFactory
         }
 };
 
+namespace types
+{
+    class ParserType
+    {
+        public:
+            virtual ~ParserType() {}
+            virtual scanner::CToken scan(const std::string& expression, scanner::CState& state) const = 0;
+            virtual void *ParseAlloc(void *(*mallocProc)(size_t)) const = 0;
+            virtual void Parse( void *yyp, int yymajor, void* yyminor, grammar::SState*) const = 0;
+            virtual void ParseFree( void *p, void (*freeProc)(void*)) const = 0;
+
+    };
+
+    class Expressions: public ParserType
+    {
+        public:
+            static const Expressions& instance() { return s_i; }
+            virtual scanner::CToken scan(const std::string& expression, scanner::CState& state) const { return scanner::expressions::CScanner()(expression, state); }
+            virtual void *ParseAlloc(void *(*mallocProc)(size_t)) const { return grammar::expressions::ParseAlloc(mallocProc); }
+            virtual void Parse( void *yyp, int yymajor, void* yyminor, grammar::SState* p) const { grammar::expressions::Parse(yyp, yymajor, yyminor, p); }
+            virtual void ParseFree( void *p, void (*freeProc)(void*)) const { grammar::expressions::ParseFree(p, freeProc); }
+
+        private:
+            const static Expressions s_i;
+    };
+
+    class Where: public ParserType
+    {
+        public:
+            static const Where& instance() { return s_i; }
+            virtual scanner::CToken scan(const std::string& expression, scanner::CState& state) const { return scanner::where::CScanner()(expression, state); }
+            virtual void *ParseAlloc(void *(*mallocProc)(size_t)) const { return grammar::where::ParseAlloc(mallocProc); }
+            virtual void Parse( void *yyp, int yymajor, void* yyminor, grammar::SState* p) const { grammar::where::Parse(yyp, yymajor, yyminor, p); }
+            virtual void ParseFree( void *p, void (*freeProc)(void*)) const { grammar::where::ParseFree(p, freeProc); }
+
+        private:
+            const static Where s_i;
+    };
+}
+
 class CParser
 {
     public:
         CParser(): m_state(EPS_UNDEFINED) {}
+        template <typename ParserType>
         bool parse(const std::string& expression);
         void dump_tree(std::ostream& os) const;
+        void dump_variables(std::ostream& os) const
+        {
+            os << "Root variable: ";
+            m_vroot.dump(os);
+            os << std::endl;
+        };
         CValue evaluate() const { return m_tree.value(); };
-        void add_variable(const std::string& name, const CValue& value) { m_variables_pool.add_variable(name, value); };
-        void clear_variables() { m_variables_pool.clear(); }
+        void add_variable(const std::string& name, const CValue& value) { m_vroot.add_field(name, value); };
+        void add_variable(const std::string& name, const CVariable& value) { m_vroot.add_field(name, value); };
+        CVariable& root() { return m_vroot; }
+        void clear_variables() { m_vroot.clear(); }
         void clear_tree() { m_tree.clear(); }
         void reset();
         bool ready() const { return EPS_READY == m_state; }
@@ -599,7 +840,9 @@ class CParser
     private:
         EParserState m_state;
         CTree m_tree;
-        CVariables m_variables_pool;
+        CVariable m_vroot;
+
+        bool parse(const types::ParserType* ptype, const std::string& expression);
 };
 
 inline void CParser::reset()
@@ -607,6 +850,29 @@ inline void CParser::reset()
     clear_variables();
     clear_tree();
 }
+
+template <typename T>
+class implement_me {};
+
+template <typename T>
+bool CParser::parse(const std::string& line)
+{
+    return implement_me<T>::FAIL;
+}
+
+template <> inline
+bool CParser::parse<types::Expressions>(const std::string& line)
+{
+    return parse(&types::Expressions::instance(), line);
+}
+
+template <> inline
+bool CParser::parse<types::Where>(const std::string& line)
+{
+    return parse(&types::Where::instance(), line);
+}
+
 }
 
 #endif
+/* vim: set ts=4 sw=4 tw=0 et syntax=cpp :*/

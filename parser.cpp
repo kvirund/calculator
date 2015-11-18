@@ -1,26 +1,11 @@
 #include "parser.h"
 
-#include "scanner.h"
-#include "grammar.h"
-#include "state.h"
 #include "colors.h"
-
-#include <cstdlib>
-
-extern "C"
-{
-    void *ParseAlloc(void *(*mallocProc)(size_t));
-    void Parse(
-            void *yyp,                   /* The parser */
-            int yymajor,                 /* The major token code number */
-            void* yyminor,               /* The value for the token */
-            void*                        /* Optional %extra_argument parameter */
-            );
-    void ParseFree(
-            void *p,                    /* The parser to be deleted */
-            void (*freeProc)(void*)     /* Function used to reclaim memory */
-            );
-}
+#include "expressions.scanner.h"
+#include "expressions.grammar.h"
+#include "where.scanner.h"
+#include "where.grammar.h"
+#include "state.h"
 
 namespace parser
 {
@@ -90,6 +75,13 @@ CValue CValue::cast_to(EType type) const
                 case ETYPE_BOOLEAN:
                     return CValue(0 != m_value.i);
 
+                case ETYPE_STRING:
+                    {
+                        std::stringstream ss;
+                        ss << m_value.i;
+                        return CValue(ss.str());
+                    }
+
                 default:
                     throw CRuntimeException((std::string("Could not cast ") + from + " to type " + to).c_str());
             }
@@ -99,6 +91,13 @@ CValue CValue::cast_to(EType type) const
             {
                 case ETYPE_FLOAT:
                     return CValue(m_value.f);
+
+                case ETYPE_STRING:
+                    {
+                        std::stringstream ss;
+                        ss << m_value.f;
+                        return CValue(ss.str());
+                    }
 
                 default:
                     throw CRuntimeException((std::string("Could not cast ") + from + " to type " + to).c_str());
@@ -110,6 +109,9 @@ CValue CValue::cast_to(EType type) const
                 case ETYPE_BOOLEAN:
                     return CValue(m_value.b);
 
+                case ETYPE_STRING:
+                    return CValue(m_value.b ? "1" : "0");
+
                 default:
                     throw CRuntimeException((std::string("Could not cast ") + from + " to type " + to).c_str());
             }
@@ -118,7 +120,7 @@ CValue CValue::cast_to(EType type) const
             switch (type)
             {
                 case ETYPE_STRING:
-                    return CValue(m_value.s);
+                    return CValue(std::string(m_value.s));
 
                 default:
                     throw CRuntimeException((std::string("Could not cast ") + from + " to type " + to).c_str());
@@ -149,14 +151,21 @@ void CValue::dump(std::ostream& os) const
             os << "STRING(\"" << get_string() << "\")";
             break;
 
+        case ETYPE_NULL:
+            os << "NULL";
+            break;
+
         case ETYPE_UNDEFINED:
             os << "<Undefined value>";
             break;
     }
 }
 
-CValue::EType CValue::top_type(CValue::EType a, CValue::EType b)
+CValue::EType CValue::top_type(CValue::EType a, CValue::EType b, const bool throw_exception)
 {
+#ifdef TOP
+#undef TOP // avoid a conflict with AIX 6.1 system include files
+#endif
 #define TOP(x, y, z) do { if (a == (x) && b == (y)) { return (z); } } while (false)
     TOP(ETYPE_INTEGER, ETYPE_INTEGER, ETYPE_INTEGER);
     TOP(ETYPE_FLOAT, ETYPE_INTEGER, ETYPE_FLOAT);
@@ -169,11 +178,20 @@ CValue::EType CValue::top_type(CValue::EType a, CValue::EType b)
     const char* from = TYPE_NAMES[a];
     const char* to = TYPE_NAMES[b];
 
-    throw CRuntimeException((std::string("Could not choose common type between ") + from + " and " + to).c_str());
+    if (throw_exception)
+    {
+        throw CRuntimeException((std::string("Could not choose common type between ") + from + " and " + to).c_str());
+    }
+    return ETYPE_UNDEFINED;
 }
 
 CValue operator<(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<bool>(false));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -199,6 +217,11 @@ CValue operator<(const CValue& a, const CValue& b)
 
 CValue operator<=(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<bool>(false));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -222,11 +245,21 @@ CValue operator<=(const CValue& a, const CValue& b)
     }
 }
 
-CValue operator==(const CValue& a, const CValue& b)
+CValue CValue::equal_to(const CValue& right, const bool throw_exception) const
 {
-    const CValue::EType type = CValue::top_type(a.type(), b.type());
-    const CValue& l = a.type() == type ? a : a.cast_to(type);
-    const CValue& r = b.type() == type ? b : b.cast_to(type);
+    if (this->is_null() || right.is_null())
+    {
+        return CValue(static_cast<bool>(false));
+    }
+
+    const CValue::EType type = CValue::top_type(this->type(), right.type(), throw_exception);
+    if (ETYPE_UNDEFINED == type)
+    {
+        return CValue();
+    }
+
+    const CValue& l = this->type() == type ? *this : this->cast_to(type);
+    const CValue& r = right.type() == type ? right : right.cast_to(type);
 
     switch (type)
     {
@@ -247,8 +280,18 @@ CValue operator==(const CValue& a, const CValue& b)
     }
 }
 
+CValue operator==(const CValue& a, const CValue& b)
+{
+    return a.equal_to(b, true);
+}
+
 CValue operator!=(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<bool>(false));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -274,6 +317,11 @@ CValue operator!=(const CValue& a, const CValue& b)
 
 CValue operator>(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<bool>(false));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -299,6 +347,11 @@ CValue operator>(const CValue& a, const CValue& b)
 
 CValue operator>=(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<bool>(false));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -324,6 +377,11 @@ CValue operator>=(const CValue& a, const CValue& b)
 
 CValue operator+(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<void*>(NULL));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -336,6 +394,9 @@ CValue operator+(const CValue& a, const CValue& b)
         case CValue::ETYPE_FLOAT:
             return l.get_float() + r.get_float();
 
+        case CValue::ETYPE_STRING:
+            return l.get_string() + r.get_string();
+
         default:
             throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[type] + " for operation +").c_str());
     }
@@ -343,6 +404,11 @@ CValue operator+(const CValue& a, const CValue& b)
 
 CValue operator-(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<void*>(NULL));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -362,6 +428,11 @@ CValue operator-(const CValue& a, const CValue& b)
 
 CValue operator-(const CValue& a)
 {
+    if (a.is_null())
+    {
+        return CValue(static_cast<void*>(NULL));
+    }
+
     switch (a.type())
     {
         case CValue::ETYPE_INTEGER:
@@ -377,6 +448,11 @@ CValue operator-(const CValue& a)
 
 CValue operator/(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<void*>(NULL));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -396,6 +472,11 @@ CValue operator/(const CValue& a, const CValue& b)
 
 CValue operator%(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<void*>(NULL));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -412,6 +493,11 @@ CValue operator%(const CValue& a, const CValue& b)
 
 CValue operator*(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<void*>(NULL));
+    }
+
     const CValue::EType type = CValue::top_type(a.type(), b.type());
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -431,6 +517,11 @@ CValue operator*(const CValue& a, const CValue& b)
 
 CValue operator&&(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<void*>(NULL));
+    }
+
     const CValue::EType type = CValue::ETYPE_BOOLEAN;
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -447,6 +538,11 @@ CValue operator&&(const CValue& a, const CValue& b)
 
 CValue operator||(const CValue& a, const CValue& b)
 {
+    if (a.is_null() || b.is_null())
+    {
+        return CValue(static_cast<void*>(NULL));
+    }
+
     const CValue::EType type = CValue::ETYPE_BOOLEAN;
     const CValue& l = a.type() == type ? a : a.cast_to(type);
     const CValue& r = b.type() == type ? b : b.cast_to(type);
@@ -463,13 +559,18 @@ CValue operator||(const CValue& a, const CValue& b)
 
 CValue operator!(const CValue& a)
 {
+    if (a.is_null())
+    {
+        return CValue(static_cast<void*>(NULL));
+    }
+
     switch (a.type())
     {
         case CValue::ETYPE_BOOLEAN:
             return !a.get_boolean();
 
         default:
-            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[a.type()] + " for operation -").c_str());
+            throw CRuntimeException((std::string("Unexpected type ") + TYPE_NAMES[a.type()] + " for operation !").c_str());
     }
 }
 
@@ -497,6 +598,7 @@ CValue& CValue::operator=(const CValue& right)
                 m_value.s = m_string.c_str();
                 break;
 
+            case ETYPE_NULL:
             case ETYPE_UNDEFINED:
                 break;
 
@@ -524,6 +626,9 @@ std::ostream& operator<<(std::ostream& os, const CValue& v)
         case CValue::ETYPE_STRING:
             return os << "\"" << v.get_string() << "\"";
 
+        case CValue::ETYPE_NULL:
+            return os << "NULL";
+
         case CValue::ETYPE_UNDEFINED:
             return os << "<Undefined value>";
     }
@@ -535,46 +640,9 @@ CValue::CValue(const CValue& from)
     *this = from;
 }
 
-void CVariables::add_variable(const std::string& name, const CValue& value)
-{
-    m_variables[name] = CVariable(name, value);
-}
-
-const CVariable& CVariables::get_variable(const std::string& name) const
-{
-    variables_map_t::const_iterator v = m_variables.find(name);
-    if (m_variables.end() == v)
-    {
-        throw CRuntimeException(("Variable '" + name + "' is not defined").c_str());
-    }
-    return v->second;
-}
-
-CVariable& CVariables::get_variable(const std::string& name)
-{
-    variables_map_t::iterator v = m_variables.find(name);
-    if (m_variables.end() == v)
-    {
-        throw CRuntimeException(("Variable '" + name + "' is not defined").c_str());
-    }
-    return v->second;
-}
-
 CValue CVariableTreeNode::value() const
 {
-    return m_variables_pool->get_variable(m_name).value();
-}
-
-void CVariableTreeNode::value(const CValue& value)
-{
-    if (!m_variables_pool->is_variable_exists(m_name))
-    {
-        m_variables_pool->add_variable(m_name, value);
-    }
-    else
-    {
-        m_variables_pool->get_variable(m_name).value(value);
-    }
+    return m_owner.get_field(m_name).value();
 }
 
 CValue CTree::value() const
@@ -611,15 +679,21 @@ void CTree::dump(std::ostream& os, int i) const
 void CVariableTreeNode::dump(std::ostream& os, int i) const
 {
     indent(os, i) << "CVariableTreeNode: ";
-    if (m_variables_pool->is_variable_exists(m_name))
+    if (m_owner.has_field(m_name))
     {
-        m_variables_pool->get_variable(m_name).dump(os);
+        m_owner.get_field(m_name).dump(os);
     }
     else
     {
         os << "<variable is not defined>";
     }
     os << std::endl;
+}
+
+void CAccessOperator::dump(std::ostream& os, int i) const
+{
+    indent(os, i) << "CAccessOperator: get field called '" << m_name << "'" << std::endl;
+    m_object->dump(os, 1 + i);
 }
 
 void COperatorTreeNode::dump(std::ostream& os, int i) const
@@ -639,54 +713,68 @@ COperatorTreeNode::~COperatorTreeNode()
     }
 }
 
-bool CParser::parse(const std::string& line)
+bool CLikeOperator::like(const std::string& s, const std::string& p)
+{
+    return parser::utils::WildTextCompare(s.c_str(), p.c_str());
+}
+
+bool CParser::parse(const types::ParserType* ptype, const std::string& line)
 {
     void* parser;
-    size_t offset = 0;
     CTreeNode::ptr_set_t temp_set;
     std::list<CParserNode*> nodes;
-    SState state = {offset: 0, syntax_error: 0, root: NULL, vpool: &m_variables_pool, temp_set: &temp_set};
+    grammar::SState state(0, 0, NULL, &m_vroot, &temp_set);
     m_state = EPS_UNDEFINED;
 
     if (line.empty())
     {
         m_state = EPS_ERROR;
-        std::cerr << RED "Line may not be empty" RESET << std::endl;
+        std::cerr << "Line may not be empty" << std::endl;
         return false;
     }
 
-    parser = ParseAlloc(malloc);
+    parser = ptype->ParseAlloc(malloc);
     scanner::CToken t;
-    for (t = scanner::scan(line, offset);
-            ET_ERROR != t.token() && ET_EOF != t.token();
-            t = scanner::scan(line, offset))
+    scanner::CState ss;
+    for (t = ptype->scan(line, ss);
+            scanner::CToken::ET_ERROR != t.token() && scanner::CToken::ET_EOF != t.token();
+            t = ptype->scan(line, ss))
     {
-        if (ET_SPACE == t.token())
-        {
-            continue;
-        }
         CParserNode* node = CTreeNodeFactory::createParserNode(t.value());
         nodes.push_back(node);
-        Parse(parser, t.token(), node, &state);
+        ptype->Parse(parser, t.token(), node, &state);
         if (state.syntax_error)
         {
             break;
         }
-        state.offset = offset;
+        state.offset = static_cast<int>(ss.offset());
     }
-    if (!state.syntax_error)
+    if (!state.syntax_error && scanner::CToken::ET_ERROR != t.token())
     {
-        Parse(parser, ET_END, ET_END, &state);
+        ptype->Parse(parser, scanner::CToken::ET_END, NULL, &state);
     }
-    if (state.syntax_error || ET_ERROR == t.token())
+    if (state.syntax_error || scanner::CToken::ET_ERROR == t.token())
     {
         m_state = EPS_ERROR;
-        std::cerr << GREEN "Syntax error at offset " << state.offset << RESET << std::endl;
+        int offset = 0;
+        if (state.syntax_error)
+        {
+            offset = ss.offset();
+            std::cerr << "PARSER: Grammar error at offset " << colors::green() << ss.offset() << colors::reset()
+                << "; Unexpected token #" << t.token() << std::endl;
+        }
+        else
+        {
+            offset = state.offset;
+            std::cerr << "PARSER: Syntax error at offset " << colors::green()<< state.offset << colors::reset() << std::endl;
+        }
         std::string msg = line;
-        msg.insert(state.offset, BLUE);
+        msg.insert(offset, colors::blue());
         msg = "'" + msg;
-        msg.append(RESET "'");
+        msg.append(colors::reset());
+        msg.append("'");
         std::cerr << msg << std::endl;
+        indent(std::cerr, offset, " ") << " ^ here" << std::endl;
 
         for (CTreeNode::ptr_set_t::const_iterator i = temp_set.begin(); i != temp_set.end(); i++)
         {
@@ -699,7 +787,7 @@ bool CParser::parse(const std::string& line)
         m_state = EPS_READY;
         m_tree.root(static_cast<CTreeNode*>(state.root));
     }
-    ParseFree(parser, free);
+    ptype->ParseFree(parser, free);
 
     while (!nodes.empty())
     {
@@ -715,4 +803,11 @@ void CParser::dump_tree(std::ostream& os) const
     os << "Parser state is " << (EPS_UNDEFINED == m_state ? "UNDEFINED" : (EPS_ERROR == m_state ? "ERROR" : "READY")) << std::endl;
     m_tree.dump(os);
 };
+
+namespace types
+{
+    const Expressions Expressions::s_i;
+    const Where Where::s_i;
 }
+}
+/* vim: set ts=4 sw=4 tw=0 et syntax=cpp :*/
