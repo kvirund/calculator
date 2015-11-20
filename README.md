@@ -39,7 +39,7 @@ Just type following commands from root of project directory:
 
 To perform tests, from build directory run test/test.it.pl:
 
-  $ ../test/test.it.pl
+    $ ../test/test.it.pl
 
 You must see something like:
 
