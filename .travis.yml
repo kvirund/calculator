@@ -4,14 +4,14 @@ compiler:
   - gcc
   - clang
 
-addons:
-  apt:
-    packages: libace-dev
-
 before_script:  
   - mkdir ${TRAVIS_BUILD_DIR}/build
   - cd ${TRAVIS_BUILD_DIR}/build
   - cmake ${TRAVIS_BUILD_DIR}
+
+before_install:
+  - sudo apt-get update -q
+  - sudo apt-get install libace-dev
 
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
