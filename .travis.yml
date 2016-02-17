@@ -9,9 +9,9 @@ before_script:
   - cd build
   - cmake ..
 
-script: cmake --build .
-
 install:
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       CMAKE_URL="http://www.cmake.org/files/v3.4/cmake-3.4.3-Linux-x86_64.tar.gz"
@@ -20,3 +20,5 @@ install:
     else
       brew install cmake
     fi
+
+script: cmake --build .
