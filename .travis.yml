@@ -13,7 +13,7 @@ script: cmake --build .
 
 addons:
     apt:
-    packages:
-      - cmake
-    sources:
-      - kalakris-cmake
+      packages:
+       - cmake
+      sources:
+       - kalakris-cmake
