@@ -4,10 +4,14 @@ compiler:
   - gcc
   - clang
 
+env:
+  apt:
+    packages: libace-dev
+
 before_script:  
-  - mkdir build
-  - cd build
-  - cmake ..
+  - mkdir ${TRAVIS_BUILD_DIR}/build
+  - cd ${TRAVIS_BUILD_DIR}/build
+  - cmake ${TRAVIS_BUILD_DIR}
 
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
@@ -20,6 +24,6 @@ install:
     else
       brew install cmake
     fi
-  - cd ..
+  - cd ${TRAVIS_BUILD_DIR}
 
 script: cmake --build .
