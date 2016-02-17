@@ -10,3 +10,10 @@ before_script:
   - cmake ..
 
 script: cmake --build .
+
+addons:
+    apt:
+    packages:
+      - cmake
+    sources:
+      - kalakris-cmake
