@@ -20,5 +20,6 @@ install:
     else
       brew install cmake
     fi
+  - cd ..
 
 script: cmake --build .
