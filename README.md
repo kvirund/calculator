@@ -68,4 +68,6 @@ You must see something like:
     (WHERE parser) Variable test                                           [PASSED]
     $ 
 
+![build status](https://travis-ci.org/kvirund/calculator.svg?branch=master)
+
 >  vim: set ts=2 sw=2 tw=0 et syntax=markdown :
