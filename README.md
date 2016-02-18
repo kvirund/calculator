@@ -2,6 +2,7 @@ Calculator
 ==========
 
 [![Join the chat at https://gitter.im/kvirund/calculator](https://badges.gitter.im/kvirund/calculator.svg)](https://gitter.im/kvirund/calculator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![build status](https://travis-ci.org/kvirund/calculator.svg?branch=master)
 
 Calculator which has been written on C++ using re2c and lemon. Currently implemented simple operation on four different types:
 
@@ -69,7 +70,5 @@ You must see something like:
     (Expressions parser) Fake assignment test                              [PASSED]
     (WHERE parser) Variable test                                           [PASSED]
     $ 
-
-![build status](https://travis-ci.org/kvirund/calculator.svg?branch=master)
 
 >  vim: set ts=2 sw=2 tw=0 et syntax=markdown :
