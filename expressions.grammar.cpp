@@ -4,14 +4,14 @@
 /* First off, code is included that follows the "include" declaration
 ** in the input grammar file. */
 #include <stdio.h>
-#line 25 "/home/veei/src/calculator/expressions.grammar.y"
+#line 25 "/home/veei/git/calculator/expressions.grammar.y"
 
 #include "state.h"
 #include <assert.h>
 #define UNUSED_ARG(x) (void) (x)
-#line 30 "/home/veei/src/calculator/expressions.grammar.y"
+#line 30 "/home/veei/git/calculator/expressions.grammar.y"
 namespace grammar { namespace expressions {
-#line 15 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 15 "/home/veei/git/calculator/expressions.grammar.cpp"
 /* Next is all token values, in a form suitable for use by makeheaders.
 ** This section will be null unless lemon is run with the -m switch.
 */
@@ -465,9 +465,9 @@ static void yy_destructor(
     case 23: /* LEFT_P */
     case 24: /* RIGHT_P */
 {
-#line 32 "/home/veei/src/calculator/expressions.grammar.y"
+#line 32 "/home/veei/git/calculator/expressions.grammar.y"
  UNUSED_ARG(state); UNUSED_ARG(yypminor); 
-#line 471 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 471 "/home/veei/git/calculator/expressions.grammar.cpp"
 }
       break;
     default:  break;   /* If no destructor action specified: do nothing */
@@ -649,9 +649,9 @@ static void yyStackOverflow(yyParser *yypParser, YYMINORTYPE *yypMinor){
    while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
    /* Here code is inserted which will execute if the parser
    ** stack every overflows */
-#line 33 "/home/veei/src/calculator/expressions.grammar.y"
+#line 33 "/home/veei/git/calculator/expressions.grammar.y"
 UNUSED_ARG(yypMinor); 
-#line 655 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 655 "/home/veei/git/calculator/expressions.grammar.cpp"
    ParseARG_STORE; /* Suppress warning about unused %extra_argument var */
 }
 
@@ -803,68 +803,68 @@ static void yy_reduce(
   **     break;
   */
       case 0: /* expression ::= expr */
-#line 35 "/home/veei/src/calculator/expressions.grammar.y"
+#line 35 "/home/veei/git/calculator/expressions.grammar.y"
 { state->root = yymsp[0].minor.yy0; }
-#line 809 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 809 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 1: /* identifier ::= IDENTIFIER */
-#line 38 "/home/veei/src/calculator/expressions.grammar.y"
+#line 38 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_identifier(yymsp[0].minor.yy0, state->vpool);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
 }
-#line 817 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 817 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 2: /* identifier ::= identifier DOT IDENTIFIER */
-#line 44 "/home/veei/src/calculator/expressions.grammar.y"
+#line 44 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_access_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     remove_from_temp_set(yymsp[-2].minor.yy0, state->temp_set);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
   yy_destructor(yypParser,18,&yymsp[-1].minor);
 }
-#line 827 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 827 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 3: /* term ::= identifier */
       case 8: /* expr ::= term */ yytestcase(yyruleno==8);
-#line 50 "/home/veei/src/calculator/expressions.grammar.y"
+#line 50 "/home/veei/git/calculator/expressions.grammar.y"
 { yygotominor.yy0 = yymsp[0].minor.yy0; }
-#line 833 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 833 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 4: /* term ::= INTEGER */
-#line 53 "/home/veei/src/calculator/expressions.grammar.y"
+#line 53 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_integer(yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
 }
-#line 841 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 841 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 5: /* term ::= FLOAT */
-#line 59 "/home/veei/src/calculator/expressions.grammar.y"
+#line 59 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_float(yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
 }
-#line 849 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 849 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 6: /* term ::= BOOLEAN */
-#line 65 "/home/veei/src/calculator/expressions.grammar.y"
+#line 65 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_boolean(yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
 }
-#line 857 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 857 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 7: /* term ::= STRING */
-#line 71 "/home/veei/src/calculator/expressions.grammar.y"
+#line 71 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_string(yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
 }
-#line 865 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 865 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 9: /* expr ::= expr PLUS expr */
-#line 79 "/home/veei/src/calculator/expressions.grammar.y"
+#line 79 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_add_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -872,10 +872,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,11,&yymsp[-1].minor);
 }
-#line 876 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 876 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 10: /* expr ::= expr MINUS expr */
-#line 87 "/home/veei/src/calculator/expressions.grammar.y"
+#line 87 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_sub_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -883,10 +883,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,12,&yymsp[-1].minor);
 }
-#line 887 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 887 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 11: /* expr ::= expr DIVIDE expr */
-#line 95 "/home/veei/src/calculator/expressions.grammar.y"
+#line 95 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_div_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -894,10 +894,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,15,&yymsp[-1].minor);
 }
-#line 898 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 898 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 12: /* expr ::= expr MOD expr */
-#line 103 "/home/veei/src/calculator/expressions.grammar.y"
+#line 103 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_mod_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -905,10 +905,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,16,&yymsp[-1].minor);
 }
-#line 909 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 909 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 13: /* expr ::= expr TIMES expr */
-#line 111 "/home/veei/src/calculator/expressions.grammar.y"
+#line 111 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_times_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -916,39 +916,39 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,14,&yymsp[-1].minor);
 }
-#line 920 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 920 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 14: /* expr ::= LEFT_P expr RIGHT_P */
-#line 119 "/home/veei/src/calculator/expressions.grammar.y"
+#line 119 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = yymsp[-1].minor.yy0;
   yy_destructor(yypParser,23,&yymsp[-2].minor);
   yy_destructor(yypParser,24,&yymsp[0].minor);
 }
-#line 929 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 929 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 15: /* expr ::= MINUS expr */
-#line 124 "/home/veei/src/calculator/expressions.grammar.y"
+#line 124 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_minus_operator(yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,12,&yymsp[-1].minor);
 }
-#line 939 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 939 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 16: /* expr ::= NOT expr */
-#line 131 "/home/veei/src/calculator/expressions.grammar.y"
+#line 131 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_not_operator(yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,4,&yymsp[-1].minor);
 }
-#line 949 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 949 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 17: /* expr ::= expr AND expr */
-#line 138 "/home/veei/src/calculator/expressions.grammar.y"
+#line 138 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_and_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -956,10 +956,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
-#line 960 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 960 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 18: /* expr ::= expr OR expr */
-#line 146 "/home/veei/src/calculator/expressions.grammar.y"
+#line 146 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_or_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -967,10 +967,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,3,&yymsp[-1].minor);
 }
-#line 971 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 971 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 19: /* expr ::= expr LESS expr */
-#line 154 "/home/veei/src/calculator/expressions.grammar.y"
+#line 154 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_less_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -978,10 +978,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,5,&yymsp[-1].minor);
 }
-#line 982 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 982 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 20: /* expr ::= expr LESS_OR_EQUAL expr */
-#line 162 "/home/veei/src/calculator/expressions.grammar.y"
+#line 162 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_less_or_equal_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -989,10 +989,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,6,&yymsp[-1].minor);
 }
-#line 993 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 993 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 21: /* expr ::= expr GREATER expr */
-#line 170 "/home/veei/src/calculator/expressions.grammar.y"
+#line 170 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_greater_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -1000,10 +1000,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,7,&yymsp[-1].minor);
 }
-#line 1004 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1004 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 22: /* expr ::= expr GREATER_OR_EQUAL expr */
-#line 178 "/home/veei/src/calculator/expressions.grammar.y"
+#line 178 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_greater_or_equal_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -1011,10 +1011,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,8,&yymsp[-1].minor);
 }
-#line 1015 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1015 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 23: /* expr ::= expr EQUAL expr */
-#line 186 "/home/veei/src/calculator/expressions.grammar.y"
+#line 186 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_equal_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -1022,10 +1022,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,9,&yymsp[-1].minor);
 }
-#line 1026 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1026 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 24: /* expr ::= expr NOT_EQUAL expr */
-#line 194 "/home/veei/src/calculator/expressions.grammar.y"
+#line 194 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_not_equal_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -1033,10 +1033,10 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,10,&yymsp[-1].minor);
 }
-#line 1037 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1037 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       case 25: /* expr ::= identifier ASSIGN expr */
-#line 202 "/home/veei/src/calculator/expressions.grammar.y"
+#line 202 "/home/veei/git/calculator/expressions.grammar.y"
 {
     yygotominor.yy0 = create_assignment_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
@@ -1044,7 +1044,7 @@ static void yy_reduce(
     remove_from_temp_set(yymsp[0].minor.yy0, state->temp_set);
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
-#line 1048 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1048 "/home/veei/git/calculator/expressions.grammar.cpp"
         break;
       default:
         break;
@@ -1091,10 +1091,10 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
-#line 17 "/home/veei/src/calculator/expressions.grammar.y"
+#line 17 "/home/veei/git/calculator/expressions.grammar.y"
 
     state->syntax_error = 1;
-#line 1098 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1098 "/home/veei/git/calculator/expressions.grammar.cpp"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 #endif /* YYNOERRORRECOVERY */
@@ -1109,12 +1109,12 @@ static void yy_syntax_error(
 ){
   ParseARG_FETCH;
 #define TOKEN (yyminor.yy0)
-#line 20 "/home/veei/src/calculator/expressions.grammar.y"
+#line 20 "/home/veei/git/calculator/expressions.grammar.y"
 
     UNUSED_ARG(yymajor);
     UNUSED_ARG(yyminor);
     state->syntax_error = 1;
-#line 1118 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1118 "/home/veei/git/calculator/expressions.grammar.cpp"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1310,6 +1310,6 @@ void Parse(
 #endif
   return;
 }
-#line 31 "/home/veei/src/calculator/expressions.grammar.y"
+#line 31 "/home/veei/git/calculator/expressions.grammar.y"
 }}
-#line 1316 "/home/veei/src/calculator/expressions.grammar.cpp"
+#line 1316 "/home/veei/git/calculator/expressions.grammar.cpp"

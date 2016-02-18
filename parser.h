@@ -819,6 +819,7 @@ namespace types
             virtual void ParseFree( void *p, void (*freeProc)(void*)) const { grammar::expressions::ParseFree(p, freeProc); }
 
         private:
+            Expressions() {}
             const static Expressions s_i;
     };
 
@@ -832,6 +833,7 @@ namespace types
             virtual void ParseFree( void *p, void (*freeProc)(void*)) const { grammar::where::ParseFree(p, freeProc); }
 
         private:
+            Where() {}
             const static Where s_i;
     };
 }

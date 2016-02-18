@@ -4,7 +4,7 @@
 /* First off, code is included that follows the "include" declaration
 ** in the input grammar file. */
 #include <stdio.h>
-#line 18 "/home/veei/src/calculator/console.grammar.y"
+#line 18 "/home/veei/git/calculator/console.grammar.y"
 
 #include "console.h"
 
@@ -14,9 +14,9 @@
 #include <assert.h>
 
 #define UNUSED_ARG(x) (void) (x)
-#line 28 "/home/veei/src/calculator/console.grammar.y"
+#line 28 "/home/veei/git/calculator/console.grammar.y"
 namespace grammar { namespace console {
-#line 20 "/home/veei/src/calculator/console.grammar.cpp"
+#line 20 "/home/veei/git/calculator/console.grammar.cpp"
 /* Next is all token values, in a form suitable for use by makeheaders.
 ** This section will be null unless lemon is run with the -m switch.
 */
@@ -395,9 +395,9 @@ static void yy_destructor(
     case 7: /* TAIL */
     case 8: /* EXEC_COMMAND */
 {
-#line 31 "/home/veei/src/calculator/console.grammar.y"
+#line 31 "/home/veei/git/calculator/console.grammar.y"
  UNUSED_ARG(state); UNUSED_ARG(yypminor); 
-#line 401 "/home/veei/src/calculator/console.grammar.cpp"
+#line 401 "/home/veei/git/calculator/console.grammar.cpp"
 }
       break;
     default:  break;   /* If no destructor action specified: do nothing */
@@ -579,9 +579,9 @@ static void yyStackOverflow(yyParser *yypParser, YYMINORTYPE *yypMinor){
    while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
    /* Here code is inserted which will execute if the parser
    ** stack every overflows */
-#line 32 "/home/veei/src/calculator/console.grammar.y"
+#line 32 "/home/veei/git/calculator/console.grammar.y"
 UNUSED_ARG(yypMinor); 
-#line 585 "/home/veei/src/calculator/console.grammar.cpp"
+#line 585 "/home/veei/git/calculator/console.grammar.cpp"
    ParseARG_STORE; /* Suppress warning about unused %extra_argument var */
 }
 
@@ -715,34 +715,34 @@ static void yy_reduce(
   **     break;
   */
       case 1: /* identifier ::= IDENTIFIER */
-#line 37 "/home/veei/src/calculator/console.grammar.y"
+#line 37 "/home/veei/git/calculator/console.grammar.y"
 {
     yygotominor.yy0 = create_identifier(yymsp[0].minor.yy0, state->vpool);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
 }
-#line 724 "/home/veei/src/calculator/console.grammar.cpp"
+#line 724 "/home/veei/git/calculator/console.grammar.cpp"
         break;
       case 2: /* identifier ::= identifier DOT IDENTIFIER */
       case 3: /* identifier ::= identifier DOT UNDOREDO */ yytestcase(yyruleno==3);
-#line 43 "/home/veei/src/calculator/console.grammar.y"
+#line 43 "/home/veei/git/calculator/console.grammar.y"
 {
     yygotominor.yy0 = create_access_operator(yymsp[-2].minor.yy0, yymsp[0].minor.yy0);
     remove_from_temp_set(yymsp[-2].minor.yy0, state->temp_set);
     add_to_temp_set(yygotominor.yy0, state->temp_set);
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
-#line 735 "/home/veei/src/calculator/console.grammar.cpp"
+#line 735 "/home/veei/git/calculator/console.grammar.cpp"
         break;
       case 4: /* expr ::= SWITCH */
-#line 57 "/home/veei/src/calculator/console.grammar.y"
+#line 57 "/home/veei/git/calculator/console.grammar.y"
 {
     parser::CTreeNode* cmd = static_cast<parser::CTreeNode*>(yymsp[0].minor.yy0);
     static_cast<CConsole*>(state->root)->set_command(cmd->value().get_string());
 }
-#line 743 "/home/veei/src/calculator/console.grammar.cpp"
+#line 743 "/home/veei/git/calculator/console.grammar.cpp"
         break;
       case 5: /* expr ::= SET_COMMAND identifier ASSIGN TAIL */
-#line 63 "/home/veei/src/calculator/console.grammar.y"
+#line 63 "/home/veei/git/calculator/console.grammar.y"
 {
     parser::CParserNode* cmd = static_cast<parser::CParserNode*>(yymsp[-3].minor.yy0);
     parser::CParserNode* expr = static_cast<parser::CParserNode*>(yymsp[0].minor.yy0);
@@ -753,10 +753,10 @@ static void yy_reduce(
     console->set_variable(var);                             // set variable name we want assign to
   yy_destructor(yypParser,6,&yymsp[-1].minor);
 }
-#line 757 "/home/veei/src/calculator/console.grammar.cpp"
+#line 757 "/home/veei/git/calculator/console.grammar.cpp"
         break;
       case 6: /* expr ::= EXEC_COMMAND TAIL */
-#line 74 "/home/veei/src/calculator/console.grammar.y"
+#line 74 "/home/veei/git/calculator/console.grammar.y"
 {
     parser::CParserNode* cmd = static_cast<parser::CParserNode*>(yymsp[-1].minor.yy0);
     parser::CParserNode* expr = static_cast<parser::CParserNode*>(yymsp[0].minor.yy0);
@@ -764,17 +764,17 @@ static void yy_reduce(
     console->set_command(cmd->value().get_string());        // set command
     console->set_expression(expr->value().get_string());    // set expression for that variable (will be parsed and calculated by some different parser)
 }
-#line 768 "/home/veei/src/calculator/console.grammar.cpp"
+#line 768 "/home/veei/git/calculator/console.grammar.cpp"
         break;
       case 7: /* expr ::= TAIL */
-#line 83 "/home/veei/src/calculator/console.grammar.y"
+#line 83 "/home/veei/git/calculator/console.grammar.y"
 {
     parser::CParserNode* expr = static_cast<parser::CParserNode*>(yymsp[0].minor.yy0);
     CConsole* console = static_cast<CConsole*>(state->root);
     console->set_command(".exec");                          // default command
     console->set_expression(expr->value().get_string());    // set expression for that variable (will be parsed and calculated by some different parser)
 }
-#line 778 "/home/veei/src/calculator/console.grammar.cpp"
+#line 778 "/home/veei/git/calculator/console.grammar.cpp"
         break;
       default:
       /* (0) expression ::= expr */ yytestcase(yyruleno==0);
@@ -822,10 +822,10 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
-#line 10 "/home/veei/src/calculator/console.grammar.y"
+#line 10 "/home/veei/git/calculator/console.grammar.y"
 
     state->syntax_error = 1;
-#line 829 "/home/veei/src/calculator/console.grammar.cpp"
+#line 829 "/home/veei/git/calculator/console.grammar.cpp"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 #endif /* YYNOERRORRECOVERY */
@@ -840,12 +840,12 @@ static void yy_syntax_error(
 ){
   ParseARG_FETCH;
 #define TOKEN (yyminor.yy0)
-#line 13 "/home/veei/src/calculator/console.grammar.y"
+#line 13 "/home/veei/git/calculator/console.grammar.y"
 
     UNUSED_ARG(yymajor);
     UNUSED_ARG(yyminor);
     state->syntax_error = 1;
-#line 849 "/home/veei/src/calculator/console.grammar.cpp"
+#line 849 "/home/veei/git/calculator/console.grammar.cpp"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 
@@ -1041,6 +1041,6 @@ void Parse(
 #endif
   return;
 }
-#line 29 "/home/veei/src/calculator/console.grammar.y"
+#line 29 "/home/veei/git/calculator/console.grammar.y"
 }}
-#line 1047 "/home/veei/src/calculator/console.grammar.cpp"
+#line 1047 "/home/veei/git/calculator/console.grammar.cpp"
