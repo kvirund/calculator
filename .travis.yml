@@ -10,8 +10,8 @@ before_script:
   - cmake ${TRAVIS_BUILD_DIR}
 
 before_install:
-  - sudo apt-get update -q
-  - sudo apt-get install libace-dev
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libace-dev
 
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
