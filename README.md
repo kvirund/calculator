@@ -1,6 +1,8 @@
 Calculator
 ==========
 
+[![Join the chat at https://gitter.im/kvirund/calculator](https://badges.gitter.im/kvirund/calculator.svg)](https://gitter.im/kvirund/calculator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Calculator which has been written on C++ using re2c and lemon. Currently implemented simple operation on four different types:
 
   1. integer
